@@ -1,0 +1,1021 @@
+openapi: 3.0.0
+info:
+  title: Grupo 01 - MyHome
+  description: API spec de MyHome.
+  version: 1.0.1
+  termsOfService:	"http://swagger.io/terms/"
+  contact:
+    email: grupo01@uade.edu.ar
+  license:
+    name:	"Apache 2.0"
+    url:	"http://www.apache.org/licenses/LICENSE-2.0.html"
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Auths
+  - name: Users
+  - name: Properties
+  - name: Contracts
+  - name: Contacts
+  - name: Health
+paths:
+  /v1/users/me:
+    get:
+      tags:
+        - Users
+      summary: obtener el usuario logueado
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+      responses:
+        '200':
+          description: Se devuelve usuario logueado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{"id": "6fc00000000x", "...": "..."}'
+        '401':
+          description: Token invalido o inexistente.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "codeMessage": "No autorizado",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+  /v1/users:
+    get:
+      tags:
+        - Users
+      summary: consulta de usuarios con o sin filtros
+      parameters:
+        - name: page
+          description: pagina a mostrar
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: limit
+          description: cuántos elementos mostrar por pagina
+          in: query
+          schema:
+            type: integer
+          example: '5'
+        - name: filter
+          description: filtros de la query
+          in: query
+          schema:
+            type: integer
+          example: 'fantasyName,RE/MAX'
+      responses:
+        '200':
+          description: Se encontro al menos un usuario, se devuelve como resultado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "code": "200", "timestamp": "<unixTimestamp>", "page": "10", "cantTotal": "X", "cantPage": "2", "data": [{"id": 1, "...": "..."}, {"id": 2, "...": "..."}]}'
+        '404':
+          description: Ningún resultado encontrado para los filtros indicados.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Ningún resultado encontrado para los filtros indicados.",   "code":  "404", "timestamp": "<unixTimestamp>", "data": []}'
+    post:
+      tags:
+        - Users
+      summary: registro de nuevo usuario
+      description: ""
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{   "firstName": "REMAX ARGENTINA S.R.L",   "lastName": "",   "email": "inmobiliaria@remax.com.ar", "password": "3ncRypt3dp45swo0rd!$", "repeatPassword": "3ncRypt3dp45swo0rd!$", "userType": "inmobiliaria", "fantasyName": "RE/MAX", "contactMail": "atencion@remax.com.ar" }'
+      responses:
+        '201':
+          description: Registro exitoso, revise su casilla de email para confirmar el usuario.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{"code":  "001", "msg": "<codeMessage>", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '400':
+          description: Error de Input. e.g, Campo(s) inválido(s), e.g, el email ya está registrado, ingrese otro o recupere contraseña.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{  "code":  "002", "msg": "<codeMessage>", "timestamp": "<unixTimestamp>"}'
+    put:
+      tags:
+        - Users
+      summary: actualización de usuario
+      description: ""
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{   "firstName": "REMAX ARGENTINA S.R.L",   "lastName": "",   "email": "inmobiliaria@remax.com.ar", "password": "3ncRypt3dp45swo0rd!$", "repeatPassword": "3ncRypt3dp45swo0rd!$", "userType": "inmobiliaria", "fantasyName": "RE/MAX", "contactMail": "atencion@remax.com.ar" }'
+      parameters:     
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: userId
+          description: user id
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: 6fc000000x
+      responses:
+        '201':
+          description: Registro exitoso, revise su casilla de email para confirmar el usuario.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{"code":  "001", "msg": "<codeMessage>", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '400':
+          description: Error de Input. e.g, Campo(s) inválido(s), e.g, el email ya está registrado, ingrese otro o recupere contraseña.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{  "code":  "002", "msg": "<codeMessage>", "timestamp": "<unixTimestamp>"}'
+    patch:
+      tags:
+        - Users
+      summary: edición de usuario & change password
+      description: Endpoint para editar la informacion de usuario.
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{  "password": "Nueva 3ncRypt3dp45swo0rd!$", "repeatPassword": "Nueva 3ncRypt3dp45swo0rd!$" }'
+      parameters:     
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: userId
+          description: user id
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: 6fc000000x
+ 
+      responses:
+        '200':
+          description: Edición exitosa de usuario.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{"msg": "<codeMessage>",   "code":  "003", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '400':
+          description: Error de input. e.g campos inválidos, el email ya existe, ingrese otro o recupere contraseña.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{  "msg": "<codeMessage>",  "code":  "004", "timestamp": "<unixTimestamp>"}'
+  /v1/auths:
+    post:
+      tags:
+        - Auths
+      summary: ingreso de usuario
+      description: Endpoint de ingreso de usuario (log-in)
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{   "email":  "test@uade.edu.ar",   "password": "3ncrypt3dP4S5w0rd"}'
+      responses:
+        '200':
+          description: Ingreso a usuario exitoso, respuesta con accessToken para ser utilizado en otros endpoints progetidos.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "accessToken": "eyJkuaI1234xyz",  "codeMessage": "autorizado",   "code":  "006", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: Credenciales invalidas o el usuario no existe.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "codeMessage": "No autorizado: Credenciales Inválidas.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+    delete:
+      tags:
+        - Auths
+      summary: logout de usuario
+      description: Endpoint de logout de usuario
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+      responses:
+        '200':
+          description: Logout de usuario exitoso.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "codeMessage": "logout",   "code":  "014", "timestamp": "<unixTimestamp>"}'
+        '400':
+          description: No autentificado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "codeMessage": "<message>",   "code":  "007", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: Token invalidas o inexistente.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "codeMessage": "No autorizado",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+    put:
+      tags:
+        - Auths
+      summary: renovar token
+      description: Endpoint para refrescar el token de auth
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+      responses:
+        '200':
+          description: Token refrescado
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "accessToken": "eyJkuaI1234xyz",  "codeMessage": "autorizado",   "code":  "015", "timestamp": "<unixTimestamp>"}'
+        '400':
+          description: No autentificado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "codeMessage": "<message>",   "code":  "007", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: Token invalidas o inexistente.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "codeMessage": "No autorizado",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+  /v1/properties:
+    get:
+      tags:
+        - Properties
+      summary: consulta de propiedades con filtros
+      parameters:
+        - name: page
+          description: pagina a mostrar
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: limit
+          description: cuántos elementos mostrar por pagina
+          in: query
+          schema:
+            type: integer
+          example: '5'
+        - name: filter
+          description: filtros de la query
+          in: query
+          schema:
+            type: integer
+          example: 'fantasyName,RE/MAX'
+      responses:
+        '200':
+          description: Se encontro al menos una propiedad, se devuelve como resultado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "code": "200", "timestamp": "<unixTimestamp>", "page": "10", "cantTotal": "X", "cantPage": "2", "data": [{"id": 1, "...": "..."}, {"id": 2, "...": "..."}]}'
+        '404':
+          description: Ningún resultado encontrado para los filtros indicados.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Ningún resultado encontrado para los filtros indicados.",   "code":  "404", "timestamp": "<unixTimestamp>", "data": []}'
+    post:
+      tags:
+        - Properties
+      summary: alta de nueva propiedad
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{ "pais": "Argentina", "provincia": "Buenos Aires", "localidad": "Lomas de Zamora", "tipoPropiedad": "Casa", "descripcion": "Casa a dos cuadras de la estación de Lomas de Zamora. Hipólito Yrigoyen al XX"}'
+          'multipart/form-data':
+            schema:
+              type: object
+              properties:
+                foto:
+                  type: string
+                  format: binary
+                video: 
+                  type: string
+                  format: binary
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+      responses:
+        '200':
+          description: Se guardo la propiedad.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Se guardo la propiedad.",   "code":  "200", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+        '400':
+          description: Client Error. e.g, Falto algun dato o parametro.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Client Error. e.g, Falto algun dato o parametro.",   "code":  "400", "timestamp": "<unixTimestamp>"}'
+    patch:
+      tags:
+        - Properties
+      summary: edición de propiedad
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{ "pais": "Argentina", "provincia": "Buenos Aires", "localidad": "Lomas de Zamora", "tipoPropiedad": "Casa", "descripcion": "Casa a dos cuadras de la estación de Lomas de Zamora. Hipólito Yrigoyen al XX"}'
+          'multipart/form-data':
+            schema:
+              type: object
+              properties:
+                foto:
+                  type: string
+                  format: binary
+                video: 
+                  type: string
+                  format: binary
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: propertyId
+          description: property id
+          required:	true
+          in: header
+          schema:
+            type: string
+            example: 6fc0000000xx
+      responses:
+        '200':
+          description: Se guardo la propiedad.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Se guardo la propiedad.",   "code":  "200", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+        '400':
+          description: Client Error. e.g, Falto algun dato o parametro.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Client Error. e.g, Falto algun dato o parametro.",   "code":  "400", "timestamp": "<unixTimestamp>"}'
+    delete:
+      tags:
+        - Properties
+      summary: baja de propiedad existente
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: propertyId
+          description: property id
+          in: path
+          schema:
+            type: string
+            example: 6fc0000000xx
+          required: true
+      responses:
+        '200':
+          description: Se dió de baja la propiedad.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Se dió de baja la propiedad.",   "code":  "200", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+        '400':
+          description: Client Error. e.g, Falto algun dato o parametro.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Client Error. e.g, Falto algun dato o parametro.",   "code":  "400", "timestamp": "<unixTimestamp>"}'
+  /v1/properties/multimedia:
+    post:
+      tags:
+        - Properties
+      summary: agregar multimedia a propiedad
+      description: Endpoint de alta de multimedia (videos o imagenes) de las propiedades.
+      requestBody:
+        content:
+          'multipart/form-data':
+            schema:
+              type: object
+              properties:
+                foto:
+                  type: string
+                  format: binary
+                video: 
+                  type: string
+                  format: binary
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: id
+          description: id de propiedad
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: id
+      responses:
+        '200':
+          description: Se cargo la multimedia correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "<codeMessage>", "code":  "008", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+        '400':
+          description: Client Error. e.g, Falto algun dato o parametro.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Client Error. e.g, Falto algun dato o parametro.",   "code":  "400", "timestamp": "<unixTimestamp>"}'
+    delete:
+      tags:
+        - Properties
+      summary: eliminar multimedia 
+      description: Endpoint de baja de multimedia (videos o imagenes) de las propiedades.
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: multimediaId
+          description: multimediaId
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: 6fc00000xxx
+      responses:
+        '200':
+          description: Se elimino la multimedia correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "<codeMessage>", "code":  "016", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+        '400':
+          description: Client Error. e.g, Falto algun dato o parametro.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Client Error. e.g, Falto algun dato o parametro.",   "code":  "400", "timestamp": "<unixTimestamp>"}'
+
+  /v1/properties/models:
+    post:
+      tags:
+        - Properties
+      summary: alta modelo de contrato de propiedad
+      description: Endpoint de alta de nuevo modelo de contrato de la propiedad. Este puede ser alquiler o venta.
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{"propiedadId": "6370ef7560b0238a0ce79f00",  "type": "venta", "descripcion": "Venta de lote en liquidacion."}'
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+      responses:
+        '200':
+          description: Modelo creado
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Modelo creado",   "code":  "200", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '400':
+          description: Error de input. E.g, El modelo ya existe.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Modelo ya existente.",   "code":  "400", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+    delete:
+      tags:
+        - Properties
+      summary: eliminar modelo de contrato
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: id
+          description: id modelo de contrato
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: id
+      responses:
+        '200':
+          description: Modelo de contrato dada de baja.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Modelo de contrato dada de baja",   "code":  "200", "timestamp": "<unixTimestamp>"}'
+        '400':
+          description: Error de input. E.g, El modelo no existe.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Modelo no existente.",   "code":  "400", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+  /v1/contracts:
+    post:
+      tags:
+        - Contracts
+      summary: iniciar contrato usuario-propiedad
+      description: "Generar un contrato entre un usuario y una propiedad del modelo de contrato publicado por la inmobiliaria. Este contrato comienza en estado 'Iniciado'."
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: modeloId
+          description: modeloId
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: modeloId
+      responses:
+        '201':
+          description: Contratación exitosa. Se envio a la inmobiliaria para su revisión, será contactado por mail y notificación en breve.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{"code":  "011", "msg": "<codeMessage>", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '500':
+          description: Error interno. Intente nuevamente luego.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{  "code":  "012", "msg": "<codeMessage>", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+    patch:
+      tags:
+        - Contracts
+      summary: edición de contrato
+      description: Endpoint para la modificación de un contrato entre un usuario y una propiedad. Un ejemplo de uso sería la cancelación del contrato por parte del usuario. 
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{   "contratoId": "6fbc0000000000xx", "newState": "cancelado" }'
+      parameters:
+      responses:
+        '200':
+          description: Edición exitosa de contrato.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{"msg": "<codeMessage>",   "code":  "013", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '400':
+          description: Error de input. e.g campos inválidos, el estado de transicion para el contrato es invalido..
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{  "msg": "<codeMessage>",  "code":  "004", "timestamp": "<unixTimestamp>"}'
+        '500':
+          description: Error interno. Intente nuevamente luego.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{  "code":  "005", "msg": "<codeMessage>", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+  /v1/contracts/reviews:
+    post:
+      tags:
+        - Contracts
+      summary: dejar review en inmobiliaria en base a contrato
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{"contratoId": "6370ef7560b0238a0ce79f00",  "type": "positive", "comment": "asdasda"}'
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+      responses:
+        '200':
+          description: Review creada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Review realizada exitosamente.",   "code":  "200", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+    patch:
+      tags:
+        - Contracts
+      summary: modificar review
+      description: Endpoint encargado de la modificación de estados de un contrato. E.g, una inmobiliaria bloquea una review que tiene un comentario negativo.
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{"reviewId": "6fc000000000x","newState": "bloqueada", "stateReason": "comentario ofensivo!"}'
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: id
+          description: id review
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: id
+      responses:
+        '200':
+          description: Review actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Review actualizada exitosamente.",   "code":  "200", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+  /v1/users/favs:
+    post:
+      tags:
+        - Users
+      summary: guardar propiedad en favoritos
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: id
+          description: id de propiedad
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Properties guardada en favoritos
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": " propiedad guardada en favoritos exitosamente.",   "code":  "009", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+    delete:
+      tags:
+        - Users
+      summary: eliminar propiedad de favoritos
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: id
+          description: id de propiedad
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Properties removida de favoritos exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": " propiedad removida de favoritos exitosamente.",   "code":  "010", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+  /v1/contacts:
+    post:
+      tags:
+        - Contacts
+      summary: usuario contacta inmobiliaria por propiedad
+      description: Endpoint para envio de contacto a inmobiliaria por parte del usuario para visitar o solicitar más información respecto a una propiedad.
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{"contactType": "Visita", "fechaVisita": "X", "comment": "Me gustaría visitar la casa el día X a la fecha X, tienen disponibilidad?"}'
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: id
+          description: id de propiedad
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: id de propiedad
+      responses:
+        '200':
+          description: Contacto enviado
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Contacto creada",   "code":  "200", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '500':
+          description: Error interno, intente luego nuevamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "error al enviar el contacto",   "code":  "500", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+    patch:
+      tags:
+        - Contacts
+      summary: actualizar contacto
+      description: Endpoint para actualizar entidades de contacto, estos inician en estado "Enviado" y pueden ser aceptados o rechazados por una inmobiliaria en primera instancia.
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              example: '{"newState": "Aceptado"}'
+      parameters:
+        - name: Authorization
+          description: accessToken obtenido en ingreso a usuario
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+        - name: id
+          description: id de propiedad
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: id de propiedad
+      responses:
+        '200':
+          description: Contacto modificado
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "Contacto modificado",   "code":  "200", "timestamp": "<unixTimestamp>", "data": {"id": "..."}}'
+        '500':
+          description: Error interno, intente luego nuevamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "error al enviar el contacto",   "code":  "500", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
+  /v1/health:
+    get:
+      tags:
+        - Health
+      summary: healthcheck endpoint
+      description: Endpoint de healthcheck para verificar que el servicio inicio correctamente junto a todas sus dependencias.
+      parameters:
+        - name: Authorization
+          description: accessToken
+          required:	true
+          in: header
+          schema:
+            type: string
+          example: Bearer eyJkuaI1234xyz
+      responses:
+        '200':
+          description: Healthcheck response
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "success",   "code":  "200", "timestamp": "<unixTimestamp>"}'
+        '500':
+          description: Error interno, intente luego nuevamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "error al solicitar healthcheck",   "code":  "500", "timestamp": "<unixTimestamp>"}'
+        '401':
+          description: No autorizado. Token invalido o expirado.
+          content:
+            application/json:
+              schema:
+                type: object
+                example: '{ "msg": "No autorizado: token invalido o expirado.",   "code":  "401", "timestamp": "<unixTimestamp>"}'
