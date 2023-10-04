@@ -1,0 +1,10 @@
+{
+    "makefile.extensionOutputFolder": "./.vscode",
+    "debug.javascript.terminalOptions": {
+        "skipFiles": [
+          "${workspaceFolder}/node_modules/**/*.js",
+          "${workspaceFolder}/lib/**/*.js",
+          "<node_internals>/**"
+        ]
+      }
+}
