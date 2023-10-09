@@ -1,28 +1,30 @@
-const { pg_pool } = require('../database')
-const UserBuilder = require("../../helpers/builder/UserBuilder");
+const User = require('../../models/User.js');
+const { db } = require('../database.js');
 
 /**
  * Creates User with the given data
  * @returns account created
  */
-const signup = async(nickname, mail, nombre, hash, tipo_usuario) => {
-    try {
+const signup = async(firstName, lastName, userType, password, mail, contactMail, fantasyName, phone, cuit) => {
+    let user = null; 
+    
+    await User.create({
+        firstName: firstName,
+        lastName: lastName, 
+        userType: userType,
+        password: password, 
+        mail: mail,
+        contactMail: contactMail, 
+        fantasyName: fantasyName,
+        phone: phone, 
+        cuit: cuit}
+    ).then(res => {
+        user = res;
+    }).catch((error) => {
+        console.error('Failed to insert data : ', error);
+    });
 
-        var query = `INSERT INTO usuarios(nickname, mail, nombre, password, tipo_usuario)
-		 values ('${nickname}', '${mail}', '${nombre}', '${hash}', '${tipo_usuario}')
-		 RETURNING idUsuario, nickname, mail`;
-        const records = await pg_pool.query(query);
-        if (records.rows.length >= 1) {
-            let record = records.rows[0];
-
-            let user = new UserBuilder().buildWithRecord(record);
-            return user;
-        } else {
-            return null;
-        }
-    } catch (error) {
-        return null;
-    }
+    return user;
 };
 
 
@@ -32,23 +34,24 @@ const signup = async(nickname, mail, nombre, hash, tipo_usuario) => {
  * @returns account if exists else null
  */
 const getUserByIdUsuario = async(uid) => {
-    try {
+    
+    let user = null; 
 
-        if (uid == undefined || uid.length < 1) {
-            return null
-        }
-
-        var query = `SELECT * from usuarios a where a.idUsuario = ${uid} `;
-        const records = await pg_pool.query(query);
-        if (records.rows.length >= 1) {
-            let record = records.rows[0];
-            return new UserBuilder().buildWithRecord(record);
-        } else {
-            return null;
-        }
-    } catch (error) {
-        return null;
+    if (uid == undefined || uid.length < 1) {
+        return null
     }
+
+    await User.findOne({
+        where: {
+            idUsuario: uid
+        }
+    }).then(res => {
+        user = res;
+    }).catch((error) => {
+        console.error('Failed to retrieve data : ', error);
+    });
+
+    return user;
 };
 
 
@@ -58,50 +61,23 @@ const getUserByIdUsuario = async(uid) => {
  * @returns account if exists else null
  */
 const getUserByMail = async(mail) => {
-    try {
-
-        if (mail == undefined || mail.length < 1) {
-            return null
-        }
-
-        var query = `SELECT * from usuarios where mail = '${mail}' `;
-        const records = await pg_pool.query(query);
-        if (records.rows.length >= 1) {
-            let record = records.rows[0];
-            return new UserBuilder().buildWithRecord(record);
-        } else {
-            return null;
-        }
-    } catch (error) {
-        return null;
+    let user = null; 
+    if (mail == undefined || mail.length < 1) {
+        return null
     }
-};
 
-/**
- * Lookups for an account in the postgres database with the given alias. 
- * If not exist returns null
- * @returns account if exists else null
- */
-const getUserByNickname = async(nickname) => {
-    try {
-
-        if (nickname == undefined || nickname.length < 1) {
-            return null
+    await User.findOne({
+        where: {
+            mail: mail
         }
+    }).then(res => {
+        user = res;
+    }).catch((error) => {
+        console.error('Failed to retrieve data : ', error);
+    });
 
-        var query = `SELECT * from usuarios a where a.nickname = '${nickname}' `;
-        const records = await pg_pool.query(query);
-        if (records.rows.length >= 1) {
-            let record = records.rows[0];
-            return new UserBuilder().buildWithRecord(record);
-        } else {
-            return null;
-        }
-    } catch (error) {
-        return null;
-    }
+    return user;
 };
-
 
 /**
  * Updates user password if user exists with uid
@@ -110,7 +86,7 @@ const getUserByNickname = async(nickname) => {
 const completeUserSignUp = async(uid) => {
     try {
 
-        var query = `UPDATE usuarios SET habilitado = 'Si' WHERE idUsuario = '${uid}' `;
+        var query = `UPDATE users SET status = 'Confirmado' WHERE idUsuario = '${uid}' `;
         const records = await pg_pool.query(query);
         if (records.rowCount >= 1) {
 
@@ -126,7 +102,7 @@ const completeUserSignUp = async(uid) => {
 const genOTP = async(uid, otp) => {
     try {
 
-        var query = `UPDATE usuarios SET OTP = '${otp}' WHERE idUsuario = '${uid}' `;
+        var query = `UPDATE users SET OTP = '${otp}' WHERE idUsuario = '${uid}' `;
         const records = await pg_pool.query(query);
         if (records.rowCount >= 1) {
 
@@ -142,7 +118,7 @@ const genOTP = async(uid, otp) => {
 const updatePassword = async(uid, password) => {
     try {
 
-        var query = `UPDATE usuarios SET OTP = '', password = '${password}' WHERE idUsuario = '${uid}' `;
+        var query = `UPDATE users SET OTP = '', password = '${password}' WHERE idUsuario = '${uid}' `;
         const records = await pg_pool.query(query);
         if (records.rowCount >= 1) {
 
@@ -159,7 +135,6 @@ module.exports = {
     signup,
     getUserByIdUsuario,
     getUserByMail,
-    getUserByNickname,
     completeUserSignUp,
     genOTP,
     updatePassword,

@@ -3,6 +3,7 @@ const http = require("http");
 const cors = require("cors");
 const socketio = require("socket.io");
 const path = require("path");
+const { testDbConnection } = require("./db/database");
 
 class Server {
   constructor() {
@@ -27,6 +28,8 @@ class Server {
   execute() {
     // Inicializar Middlewares
     this.middlewares();
+
+    testDbConnection();
 
     // Inicializar Server
     this.server.listen(this.port, () => {

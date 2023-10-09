@@ -1,6 +1,5 @@
 const { pg_pool } = require('../database')
-const PropiedadBuilder = require("../../helpers/builder/PropiedadBuilder.js");
-const PropiedadCompletaBuilder = require("../../helpers/builder/PropiedadCompletaBuilder.js");
+
 
 /**
 * Creates User with the given data
@@ -53,14 +52,6 @@ const getProperties = async ({property_id, usuario_id, nombre, rating_min, order
 		let result = [];
 		for (const record of records.rows) {
 
-			let propiedad = new PropiedadBuilder().buildWithRecord(record);
-
-			// construimos VO de prop completa
-			let propiedadCompleta = new PropiedadCompletaBuilder()
-			.property(propiedad)
-			.build();
-
-			result.push(propiedadCompleta);
 		}
 
 		return result;
@@ -79,8 +70,7 @@ const addProperty = async ({idUsuario, nombre,descripcion,tipo,foto,porciones,ca
 		if (records.rows.length >= 1) {
 			let record = records.rows[0];
 
-			let propiedad = new PropiedadBuilder().buildWithRecord(record);
-			return propiedad;
+			
 		} else {
 			return null;
 		}
@@ -116,8 +106,7 @@ const updateProperty = async (body) => {
 		if (records.rows.length >= 1) {
 			let record = records.rows[0];
 
-			let propiedad = new PropiedadBuilder().buildWithRecord(record);
-			return propiedad;
+			
 		} else {
 			return null;
 		}

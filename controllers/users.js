@@ -17,16 +17,16 @@ oAuth2Client.setCredentials({
   refresh_token: process.env.GMAIL_API_REFRESH_TOKEN,
 });
 
-const registerUser = async (req, res = response) => {
+const createUser = async (req, res = response) => {
   try {
-    const { nickname, mail, nombre, password, repeatPassword, tipo_usuario } =
-      req.body;
-    if (!constants.RoleEnum.includes(tipo_usuario)) {
+    const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } =  req.body;
+
+    if (!constants.RoleEnum.includes(userType)) {
       return res
         .status(400)
         .json({
           status: "error",
-          message: `'${tipo_usuario} no es un tipo de usuario valido'`,
+          message: `'${userType} no es un tipo de usuario valido'`,
         });
     }
 
@@ -43,11 +43,7 @@ const registerUser = async (req, res = response) => {
 
     let hash = await bcrypt.hash(password, constants.SALT_ROUNDS);
     user = await UserRepository.signup(
-      nickname,
-      mail,
-      nombre,
-      hash,
-      tipo_usuario
+      firstName, lastName, userType, hash, mail, contactMail, fantasyName, phone, cuit
     );
 
     const accessToken = await oAuth2Client.getAccessToken();
@@ -100,5 +96,5 @@ const registerUser = async (req, res = response) => {
 
 
 module.exports = {
-  registerUser
+  createUser
 };

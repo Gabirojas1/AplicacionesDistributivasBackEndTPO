@@ -1,42 +1,52 @@
-class User {
-  constructor() {
-    this.idUsuario = 0;
-    this.nombre = "";
-    this.mail = "";
-    this.nickname = "";
-    this.password = "";
-    this.habilitado = "No";
-    this.avatar = "";
-    this.tipo_usuario = "Usuario";
-  }
+const { Sequelize, DataTypes } = require('sequelize');
+const { sq } = require('../db/database.js')
 
-  getIdUsuario() {
-    return this.idUsuario;
-  }
 
-  getMail() {
-    return this.mail;
+const User = sq.define('User', {
+  idUsuario: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  firstName: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  lastName: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  userType: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  mail: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  contactMail: {
+    type: DataTypes.STRING,
+  },
+  fantasyName: {
+    type: DataTypes.STRING,
+  },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: "Initial"
   }
+}, {
+  // Other model options go here
+});
 
-  getNickname() {
-    return this.mail;
-  }
+User.sync().then(() => {
+  console.log("User Model synced");
+});
 
-  getPassword() {
-    return this.password;
-  }
-
-  getNombre() {
-    return this.nombre;
-  }
-
-  getHabilitado() {
-    return this.habilitado;
-  }
-
-  getAvatar() {
-    return this.avatar;
-  }
-}
+console.log(User === sq.models.User);
 
 module.exports = User;
