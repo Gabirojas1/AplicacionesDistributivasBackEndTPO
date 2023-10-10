@@ -2,6 +2,11 @@ require("dotenv").config();
 
 const RoleEnum = ["Usuario", "Inmobiliaria"];
 
+const UserTypeEnum = {
+  INMOBILIARIA: 'Inmobiliaria',
+  USUARIO: 'Usuario',
+};
+
 const ContenidoEnum = ["foto", "video", "audio"];
 
 const SALT_ROUNDS = 6;
@@ -25,6 +30,7 @@ module.exports = {
   auth,
   mailoptions,
   RoleEnum,
+  UserTypeEnum,
   ContenidoEnum,
   SALT_ROUNDS,
   defaultProfileGuestImage: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894991/dohnmb6blyd2ei1bjha7.png",

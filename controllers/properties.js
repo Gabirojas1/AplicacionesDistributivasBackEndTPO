@@ -12,7 +12,8 @@ const getProperties = async (req, res) => {
     var limit = req.query.limit ? req.query.limit : 10;
 
     const body = req.body;
-    
+    body.filterOwned = req.filterOwned ? true : false;
+
     let total = await PropertiesRepository.getProperties(body);
 
     body.skip = skip;
@@ -26,13 +27,23 @@ const getProperties = async (req, res) => {
   }
 };
 
+// Metodo especifico para obtener propiedades del usuario logeado
+const getOwnedProperties = async (req, res) => {
+
+  // Get Logged-Sn User properties....
+  // don't filter by status, get em' all.
+  req.filterOwned = true;
+
+  return await getProperties(req, res);
+};
+
 // Usuario agrega property
 const addProperty = async (req, res) => {
 
   const body = req.body;
 
   try {
-    let user = await UserRepository.getUserByIdUsuario(req.body.idUsuario);
+    let user = await UserRepository.getUserByIdUsuario(body.idUsuario);
     if (!user) {
       return res.status(401).json({
         status: "error",
@@ -40,8 +51,15 @@ const addProperty = async (req, res) => {
       });
     }
 
+    if (user.userType != constants.UserTypeEnum.INMOBILIARIA) {
+      return res.status(400).json({
+        status: "error",
+        message: "Error: solo las inmobiliarias pueden agregar propiedades.",
+      });
+    }
+
     let property = await PropertiesRepository.addProperty(body);
-    if(property) {
+    if (property) {
       return res.status(200).json({
         status: "ok",
         message: "property dada de alta exitosamente",
@@ -50,11 +68,10 @@ const addProperty = async (req, res) => {
     } else {
       return res.status(500).json({
         status: "error",
-        message: "no se pudo agregar",
-        data: property,
+        message: "Error. No se pudo agregar la propiedad.",
       });
     }
-    
+
   } catch (e) {
     return res
       .status(e.statusCode)
@@ -66,20 +83,31 @@ const addProperty = async (req, res) => {
 const updateProperty = async (req, res) => {
   const body = req.body;
 
-    // TODO validar ownership de la property para el usuario
   try {
 
     // Validar que la propiedad existe
-    let properties= await PropertiesRepository.getProperties({property_id: body.idProperty});
-    if (properties.length < 1) {
-      return res.status(404).json({
+    // Tiene que existir con el idProperty y pertenecer al usuario loggeado.
+    let properties = await PropertiesRepository.getProperties({
+      idProperty: body.idProperty,
+      idUsuario: body.idUsuario,
+      filterOwned: true
+    });
+    let property = properties[0];
+
+    // El usuario no es dueño de la propiedad
+    if (properties.length < 1 || property.idUsuario != body.idUsuario) {
+      return res.status(401).json({
         status: "error",
-        message: "la propiedad no existe",
+        message: "No autorizado. La propiedad no existe o no te pertenece.",
       });
     }
-    
 
-    let result = await PropertiesRepository.updateProperty(body);
+    // Actualizarla con la info del body.
+    // Exceptuando campos no editables
+    var clone = JSON.parse(JSON.stringify(body));
+    delete clone.rating;
+
+    let result = await PropertiesRepository.updateProperty(property, clone);
     if (!result) {
       return res.status(200).json({
         status: "error",
@@ -93,7 +121,7 @@ const updateProperty = async (req, res) => {
     });
   } catch (e) {
     return res
-      .status(e.statusCode)
+      .status(e.statusCode ? e.statusCode : 500)
       .json({ status: e.name, message: e.message });
   }
 };
@@ -102,12 +130,12 @@ const updateProperty = async (req, res) => {
 const deleteProperty = async (req, res) => {
   const body = req.body;
 
-    // TODO validar ownership de la propiedad para el usuario
+  // TODO validar ownership de la propiedad para el usuario
 
   try {
 
     // Validar que la propiedad existe
-    let properties = await PropertiesRepository.getProperties({property_id: body.idProperty});
+    let properties = await PropertiesRepository.getProperties({ property_id: body.idProperty });
     if (properties.length < 1) {
       return res.status(404).json({
         status: "error",
@@ -135,6 +163,7 @@ const deleteProperty = async (req, res) => {
 
 module.exports = {
   getProperties,
+  getOwnedProperties,
   addProperty,
   updateProperty,
   deleteProperty,

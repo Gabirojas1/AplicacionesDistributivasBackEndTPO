@@ -1,25 +1,28 @@
 const Property = require('../../models/Property');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 
 /**
-* Creates User with the given data
-* @returns account created
+* Gets properties by filtering query
+* @returns List of properties
 */
 const getProperties = async ({ idProperty, idUsuario, title, description,
 	antiquity, mtsCovered, mtsUnconvered, position, orientation, numEnvironments,
-	numRooms, numBathrooms, numCars, roofTop, balcony, vault, status,
+	numRooms, numBathrooms, numCars, roofTop, balcony, vault, filterOwned,
 	minRating, orderBy, orderType, skip, limit }) => {
 
 	let result = [];
 
 	var whereStatement = {};
-	whereStatement.status = "Publicada";
 
-	if (idProperty)
-		whereStatement.idProperty = idProperty;
+	if (!filterOwned) {
+		whereStatement.status = "Publicada";
+	}
 
 	if (idUsuario)
 		whereStatement.idUsuario = idUsuario;
+
+	if (idProperty)
+		whereStatement.idProperty = idProperty;
 
 	if (title) {
 		whereStatement.title = {
@@ -69,7 +72,7 @@ const getProperties = async ({ idProperty, idUsuario, title, description,
 		console.error('Failed to retrieve data : ', error);
 	});
 
-	return result;	
+	return result;
 };
 
 // Agrega propiedad
@@ -100,39 +103,10 @@ const addProperty = async ({ idUsuario, propertyType, modalType, title, descript
 };
 
 // actualiza propiedad existente
-const updateProperty = async (body) => {
-	try {
-
-		var clone = JSON.parse(JSON.stringify(body));
-		delete clone.idProperty;
-		delete clone.idUsuario;
-		delete clone.tipo;
-
-		let query = ` UPDATE propertiesSET `
-
-		// generar parte del SET dinamicamente
-		let i = 1;
-		for (let key in clone) {
-			query = query + `${key} = '${body[key]}'`
-			if (i != Object.keys(clone).length) {
-				query = query + ", "
-			}
-			i++;
-		}
-
-		query = query + ` WHERE idProperty = '${body.idProperty}' RETURNING * `;
-
-		const records = await pg_pool.query(query);
-		if (records.rows.length >= 1) {
-			let record = records.rows[0];
-
-
-		} else {
-			return null;
-		}
-	} catch (error) {
-		return null;
-	}
+const updateProperty = async (property, data) => {
+	await property.update(data);
+	await property.save();
+	return property;
 };
 
 // Elimina propiedad existente

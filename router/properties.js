@@ -19,6 +19,9 @@ router.get("/", propertiesCtrl.getProperties);
 /*---------- Protected Routes ----------*/
 router.use(decodeUserFromToken);
 
+// obtener properties
+router.get("/owned", propertiesCtrl.getOwnedProperties);
+
 // agregar property
 router.post("/", 
 [
@@ -32,7 +35,7 @@ propertiesCtrl.addProperty);
 
 
 // actualizar property
-router.put("/", 
+router.patch("/", 
 [
   // check("idProperty", "El idProperty es obligatorio").not().isEmpty(),
   // check("nombre", "El nombre es obligatorio").not().isEmpty(),
