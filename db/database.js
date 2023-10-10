@@ -2,6 +2,7 @@ const Sequelize = require('sequelize');
 
 let conn_string = "postgres://myhome:1234@backend-myhome.pg:5432/myhome";
 console.log(conn_string);
+
 const sequelize = new Sequelize(conn_string);
 const db = {};
 
@@ -24,7 +25,11 @@ db.sequelize = sequelize;
 // });
 
 const testDbConnection = async () => {
+  console.log("Checking database connection.");
+
   try {
+    // wait 1 second for postgres
+    await new Promise(resolve => setTimeout(resolve, 1000));
     await sequelize.authenticate();
     console.log("Connection has been established successfully.");
   } catch (error) {

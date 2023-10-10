@@ -48,36 +48,52 @@ const User = sq.define('user', {
 User.sync().then(async () => {
   
   console.log("Initializing User data. . . . . . . ");
-  
-  const mockedUser = await User.create({
-    firstName: "FirstName",
-    lastName: "LastName",
-    userType: "Usuario",
-    status: "Confirmado",
-    mail: "gaxelac@outlook.com",
-    password: "$2b$06$Nqq5r0jxYW8YO6K7d83ug.9fvDcLF3Ul3uzrXhC/ty9K5UZKW2F1a",
+
+  let userMail = "gaxelac@outlook.com";
+
+  await User.findOne({
+    where: {
+      mail: userMail
+    }
+  }).then(async res => {
+
+      if (!res) {
+
+        const mockedUser = await User.create({
+          firstName: "FirstName",
+          lastName: "LastName",
+          userType: "Usuario",
+          status: "Confirmado",
+          mail: userMail,
+          password: "$2b$06$Nqq5r0jxYW8YO6K7d83ug.9fvDcLF3Ul3uzrXhC/ty9K5UZKW2F1a",
+        });
+        
+        Property.create({
+          idUsuario: mockedUser.idUsuario,
+          idLocation: "TODO!",
+          propertyType: "casa",
+          title: "Casa en Lomas de Zamora",
+          description: "Casa en el centro de Lomas de Zamora con cuatro ambientes y multiples ammenities.",
+          antiquity: 1,
+          mtsCovered: 50,
+          mtsHalfCovered: 50,
+          mtsUncovered: 50,
+          position: "Horizontal",
+          orientation: "Norte",
+          numEnvironments: 4,
+          numRooms: 4,
+          numBathrooms: 2,
+          numCars: 2,
+          roofTop: true,
+          balcony: true,
+          vault: true,
+          status: "Publicada",
+        });
+      }
+  }).catch((error) => {
+      console.error('Failed to insert data : ', error);
   });
-  
-  Property.create({
-    idUsuario: mockedUser.idUsuario,
-    idLocation: "TODO!",
-    propertyType: "casa",
-    description: "Alquiler de casa en LDZ",
-    antiquity: 1,
-    mtsCovered: 50,
-    mtsHalfCovered: 50,
-    mtsUncovered: 50,
-    position: "Horizontal",
-    orientation: "Norte",
-    numEnvironments: 4,
-    numRooms: 4,
-    numBathrooms: 2,
-    numCars: 2,
-    roofTop: true,
-    balcony: true,
-    vault: true,
-    status: "Publicada",
-  });
+
 });
 
 User.associate = function (models) {

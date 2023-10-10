@@ -15,12 +15,14 @@ const Property = sq.define('property', {
   },
   idLocation: {
     type: DataTypes.STRING,
-    allowNull: false
   },
   propertyType: {
     type: DataTypes.STRING,
     allowNull: false,
-    default: "casa"
+  },
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false
   },
   description: {
     type: DataTypes.STRING,
@@ -68,7 +70,7 @@ const Property = sq.define('property', {
   status: {
     type: DataTypes.STRING,
     allowNull: false,
-    default: "Initial"
+    defaultValue: "Initial_1"
   }
 },
 {

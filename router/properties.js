@@ -22,9 +22,9 @@ router.use(decodeUserFromToken);
 // agregar property
 router.post("/", 
 [
-  check("nombre", "El nombre es obligatorio").not().isEmpty(),
-  check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
-  check("tipo", "El tipo es obligatorio").not().isEmpty(),
+  // check("nombre", "El nombre es obligatorio").not().isEmpty(),
+  // check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
+  // check("tipo", "El tipo es obligatorio").not().isEmpty(),
   validateField,
 ],
 checkAuth,
@@ -34,10 +34,10 @@ propertiesCtrl.addProperty);
 // actualizar property
 router.put("/", 
 [
-  check("idProperty", "El idProperty es obligatorio").not().isEmpty(),
-  check("nombre", "El nombre es obligatorio").not().isEmpty(),
-  check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
-  check("tipo", "El tipo es obligatorio").not().isEmpty(),
+  // check("idProperty", "El idProperty es obligatorio").not().isEmpty(),
+  // check("nombre", "El nombre es obligatorio").not().isEmpty(),
+  // check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
+  // check("tipo", "El tipo es obligatorio").not().isEmpty(),
   validateField,
 ],
 checkAuth,

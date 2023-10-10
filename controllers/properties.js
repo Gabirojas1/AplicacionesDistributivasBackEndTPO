@@ -28,11 +28,16 @@ const getProperties = async (req, res) => {
 
 // Usuario agrega property
 const addProperty = async (req, res) => {
+
+  // let decoded = await verifyJWT(token);
+  // if (decoded.err) {
+  //   return res.status(401).json({ err: "error decrypt token" });
+  // }
+
   const body = req.body;
-  body.idUsuario = req.idUsuario;
 
   try {
-    let user = await UserRepository.getUserByIdUsuario(body.idUsuario);
+    let user = await UserRepository.getUserByIdUsuario(req.body.idUsuario);
     if (!user) {
       return res.status(401).json({
         status: "error",
@@ -41,11 +46,20 @@ const addProperty = async (req, res) => {
     }
 
     let property = await PropertiesRepository.addProperty(body);
-    return res.status(200).json({
-      status: "ok",
-      message: "property dada de alta exitosamente",
-      data: property,
-    });
+    if(property) {
+      return res.status(200).json({
+        status: "ok",
+        message: "property dada de alta exitosamente",
+        data: property,
+      });
+    } else {
+      return res.status(500).json({
+        status: "error",
+        message: "no se pudo agregar",
+        data: property,
+      });
+    }
+    
   } catch (e) {
     return res
       .status(e.statusCode)
@@ -56,7 +70,6 @@ const addProperty = async (req, res) => {
 // Actualiza property existente
 const updateProperty = async (req, res) => {
   const body = req.body;
-  body.idUsuario = req.idUsuario;
 
     // TODO validar ownership de la property para el usuario
   try {
@@ -93,7 +106,6 @@ const updateProperty = async (req, res) => {
 // Elimina propiedad existente
 const deleteProperty = async (req, res) => {
   const body = req.body;
-  body.idUsuario = req.idUsuario;
 
     // TODO validar ownership de la propiedad para el usuario
 

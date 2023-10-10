@@ -13,7 +13,7 @@ class Server {
     this.io = socketio(this.server, {});
   }
 
-  middlewares() {
+  async middlewares() {
     // Desplegar el directorio público
     this.app.use(express.static(path.resolve(__dirname, "../public")));
     // Cors
@@ -25,12 +25,12 @@ class Server {
     this.app.use("/v1/users", require("./router/users"));
   }
 
-  execute() {
+  async execute() {
+
+    await testDbConnection();
+
     // Inicializar Middlewares
-    this.middlewares();
-
-    testDbConnection();
-
+    await this.middlewares();
     // Inicializar Server
     this.server.listen(this.port, () => {
       console.log("Server running on port:", this.port);

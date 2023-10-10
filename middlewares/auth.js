@@ -19,7 +19,7 @@ exports.decodeUserFromToken = async function decodeUserFromToken(
       if (err) {
         return res.status(401).json({status: "error", message: err});
       } else {
-        req.idUsuario = decoded.uid;
+        req.body.idUsuario = decoded.uid;
         next();
       }
     });
@@ -29,5 +29,5 @@ exports.decodeUserFromToken = async function decodeUserFromToken(
 };
 
 exports.checkAuth = async function checkAuth(req, res, next) {
-  return req.idUsuario ? next() : res.status(401).json({ msg: "Not Authorized" });
+  return req.body.idUsuario ? next() : res.status(401).json({ msg: "Not Authorized" });
 };
