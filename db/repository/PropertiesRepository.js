@@ -1,4 +1,5 @@
 const Property = require('../../models/Property');
+const { Op } = require('sequelize');
 
 /**
 * Creates User with the given data
@@ -7,7 +8,7 @@ const Property = require('../../models/Property');
 const getProperties = async ({ idProperty, idUsuario, title, description,
 	antiquity, mtsCovered, mtsUnconvered, position, orientation, numEnvironments,
 	numRooms, numBathrooms, numCars, roofTop, balcony, vault, status,
-	rating_min, order_by, order_type, skip, limit }) => {
+	minRating, orderBy, orderType, skip, limit }) => {
 
 	let result = [];
 
@@ -22,22 +23,28 @@ const getProperties = async ({ idProperty, idUsuario, title, description,
 
 	if (title) {
 		whereStatement.title = {
-			[Op.like]: `${title}`
+			[Op.iLike]: "%" + title + "%"
 		};
 	}
 
 	if (description) {
 		whereStatement.description = {
-			[Op.like]: `${description}`
+			[Op.iLike]: "%" + description + "%"
+		};
+	}
+
+	if (minRating) {
+		whereStatement.rating = {
+			[Op.gte]: minRating
 		};
 	}
 
 	let orderStatement = ['updatedAt', 'DESC']
-	if (order_by && order_type) {
-		if (order_by == 'rating') {
-			orderStatement = [positiveCount + negativeCount, order_type]
+	if (orderBy && orderType) {
+		if (orderBy == 'rating') {
+			orderStatement = [positiveCount + negativeCount, orderType]
 		} else {
-			orderStatement = [order_type, order_type]
+			orderStatement = [orderBy, orderType]
 		}
 	}
 
@@ -48,35 +55,21 @@ const getProperties = async ({ idProperty, idUsuario, title, description,
 		limit: limit
 	}).then(res => {
 		result = res;
+
+		// TODO!
+		// obtenemos los resultados y creamos los
+		// value object de respuesta (complete property VO)
+		// 	let result = [];
+		// 	for (const record of res.rows) {
+
+		// 	}
+
+
 	}).catch((error) => {
 		console.error('Failed to retrieve data : ', error);
 	});
 
-	return result;
-
-
-	// try {
-
-	// 	// Se filtra por los campos recibidos en el body.
-	// 	let query = "SELECT r.* FROM properties WHERE r.estado = 1 ";
-
-	// 	if (nombre) {
-	// 		query = query + ` AND (r.nombre LIKE '%${nombre}%' `
-	// 		query = query + ` OR r.descripcion LIKE '%${nombre}%' ) `
-	// 	}
-
-	// 	if (rating_min) {
-	// 		query = query + ` AND r.rating > '${rating_min}' `
-	// 	}
-
-	// 	// ejecuta query
-	// 	const records = await pg_pool.query(query);
-
-	// 	// obtenemos los resultados y creamos los value object de respuesta
-	// 	let result = [];
-	// 	for (const record of records.rows) {
-
-	// 	}
+	return result;	
 };
 
 // Agrega propiedad

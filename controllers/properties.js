@@ -29,11 +29,6 @@ const getProperties = async (req, res) => {
 // Usuario agrega property
 const addProperty = async (req, res) => {
 
-  // let decoded = await verifyJWT(token);
-  // if (decoded.err) {
-  //   return res.status(401).json({ err: "error decrypt token" });
-  // }
-
   const body = req.body;
 
   try {

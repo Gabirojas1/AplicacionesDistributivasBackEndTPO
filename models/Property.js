@@ -71,6 +71,10 @@ const Property = sq.define('property', {
     type: DataTypes.STRING,
     allowNull: false,
     defaultValue: "Initial_1"
+  },
+  rating: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   }
 },
 {
