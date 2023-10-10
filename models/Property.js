@@ -1,6 +1,8 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const { sq } = require('../db/database')
 
+const User = require('./User.js')
+
 const Property = sq.define('property', {
   idProperty: {
     type: Sequelize.INTEGER,
@@ -73,8 +75,12 @@ const Property = sq.define('property', {
   tableName: 'properties',
 });
 
+Property.sync().then(async () => {
+  console.log("Initializing Properties data. . . . . . . ");
+});
+
 Property.associate = function(models) {
-  Property.belongsTo (models.user, {
+  Property.belongsTo (User, {
     foreignKey: { name: 'idUsuario', allowNull: false }
   });
 }
