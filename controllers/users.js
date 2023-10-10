@@ -2,10 +2,12 @@ var nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 const { response } = require("express");
 const bcrypt = require("bcrypt");
-const { generateJWT } = require("../helpers/jwt");
+const { generateJWT, verifyJWT } = require("../helpers/jwt");
 const UserRepository = require("../db/repository/UserRepository");
 
 var constants = require("../common/constants");
+
+const path = require("path");
 
 const oAuth2Client = new google.auth.OAuth2(
   process.env.GMAIL_API_KEY,
@@ -17,7 +19,7 @@ oAuth2Client.setCredentials({
   refresh_token: process.env.GMAIL_API_REFRESH_TOKEN,
 });
 
-const createUser = async (req, res = response) => {
+const signup = async (req, res = response) => {
   try {
     const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } =  req.body;
 
@@ -65,7 +67,7 @@ const createUser = async (req, res = response) => {
       text:
         `Hola! Te escribimos de myHome. \n
         has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
-        Sigue este link: http://localhost:8080/auth/complete?token=` + token,
+        Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token,
     };
 
     try {
@@ -94,7 +96,45 @@ const createUser = async (req, res = response) => {
   }
 };
 
+const confirmSignup = async (req, res = response) => {
+  try {
+    const token = req.query.token;
+
+    let decoded = await verifyJWT(token);
+    if (decoded.err) {
+      return res.status(401).json({ err: "error decrypt token" });
+    }
+
+    UserRepository.getUserByIdUsuario(decoded.idUsuario).then(async (user) => {
+      if (!user) {
+        /* return res
+                    .status(401)
+                    .json({ err: "no existe el usuario" }); */
+        return res.sendFile(
+          path.resolve("public/signup-complete-fail-02.html")
+        );
+      }
+
+      let bret = await UserRepository.confirmSignup(decoded.idUsuario);
+      if (!bret) {
+        return res.sendFile(
+          path.resolve("public/signup-complete-fail-03.html")
+        );
+      }
+
+      // const token = await generateJWT({ "idusuario": decoded.idusuario });
+      return res.sendFile(path.resolve("public/signup-complete-success.html"));
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      message: "Unexpected error",
+    });
+  }
+};
+
 
 module.exports = {
-  createUser
+  signup,
+  confirmSignup
 };

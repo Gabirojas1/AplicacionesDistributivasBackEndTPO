@@ -1,31 +1,57 @@
-# Endpoints \
+# Endpoints
 /auths \
-/properties \
+/users \
+/properties
+
+# Commands
+
+Requerimientos: 
+- Docker, docker compose
+- Makefile (opcional)
+
+## Iniciar app & db
+
+> docker compose up -d --build --force-recreate backend-myhome.app 
+
+Con Makefile:
+
+    make up
+
+# Eliminar contenedores y db
+
+> docker rm -f $(docker ps -a -q) --volumes
+
+ó 
+> docker compose -f ./docker-compose.yaml down --volumes
 
 
-# DOCKER\
 
-## bring up containers (app & pg)\
-cd dev \
-docker compose up -d --build --force-recreate myhome.app \
+Option 2 con Makefile: 
 
-## delete containers (--volumes to delete database volumes also) \
-cd dev \
-docker rm -f $(docker ps -a -q) --volumes \
+    make down
 
-# POSTGRES \
-## Access postgres (in order) \
-docker exec -it myhome.pg /bin/bash \
-psql -U root -d myhome \
 
-## \du+ \
-list all users \
+# postgres
 
-## \l  \
-list all databases  \
+Para acceder a postgres:
 
-## \c myhome  \
-switch to myhome database  \
+Option 1: 
+1. > docker exec -it backend-myhome.pg /bin/bash
+2. > psql -U root -d myhome
 
-## \dt  \
-list all tables  \
+Option 2 (con Makefile):
+
+    make pgconsole
+  
+Comandos útiles postgres:
+> \du+
+list all users 
+
+> \l
+list all databases
+
+> \c myhome
+switch to myhome database
+
+> \dt
+list all tables

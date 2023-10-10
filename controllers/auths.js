@@ -32,8 +32,8 @@ const login = async (req, res = response) => {
       });
     }
 
-    const validPassword = bcrypt.compareSync(password, usuario.getPassword());
-    if (!validPassword || usuario.getHabilitado() != "Si") {
+    const validPassword = bcrypt.compareSync(password, usuario.password);
+    if (!validPassword || usuario.status != "Confirmado") {
       return res.status(400).json({
         ok: false,
         message: "User or password incorrect",

@@ -1,5 +1,4 @@
 const User = require('../../models/User.js');
-const { db } = require('../database.js');
 
 /**
  * Creates User with the given data
@@ -83,20 +82,25 @@ const getUserByMail = async(mail) => {
  * Updates user password if user exists with uid
  * @returns 
  */
-const completeUserSignUp = async(uid) => {
-    try {
-
-        var query = `UPDATE users SET status = 'Confirmado' WHERE idUsuario = '${uid}' `;
-        const records = await pg_pool.query(query);
-        if (records.rowCount >= 1) {
-
-            return true
-        } else {
-            return false;
-        }
-    } catch (error) {
-        return false;
+const confirmSignup = async(uid) => {
+    let user = null; 
+    if (uid == undefined || uid < 0) {
+        return user;
     }
+
+    await User.findOne({
+        where: {
+            idUsuario: uid
+        }
+    }).then(async res => {
+        res.status = "Confirmado";
+        await res.save();
+        user = res;
+    }).catch((error) => {
+        console.error('Failed to update data : ', error);
+    });
+
+    return user;
 };
 
 const genOTP = async(uid, otp) => {
@@ -135,7 +139,7 @@ module.exports = {
     signup,
     getUserByIdUsuario,
     getUserByMail,
-    completeUserSignUp,
+    confirmSignup,
     genOTP,
     updatePassword,
 };

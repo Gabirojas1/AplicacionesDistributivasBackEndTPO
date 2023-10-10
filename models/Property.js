@@ -1,14 +1,14 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const { sq } = require('../db/database')
 
-const Property = sq.define('Property', {
+const Property = sq.define('property', {
   idProperty: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     primaryKey: true
   },
   idUsuario: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false
   },
   idLocation: {
@@ -68,14 +68,15 @@ const Property = sq.define('Property', {
     allowNull: false,
     default: "Initial"
   }
-}, {
-	tableName: 'Properties'
+},
+{
+  tableName: 'properties',
 });
 
-Property.sync().then(() => {
-  console.log("Property Model synced");
-});
-
-console.log(Property === sq.models.Property);
+Property.associate = function(models) {
+  Property.belongsTo (models.user, {
+    foreignKey: { name: 'idUsuario', allowNull: false }
+  });
+}
 
 module.exports = Property;

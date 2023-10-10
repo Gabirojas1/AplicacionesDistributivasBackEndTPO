@@ -1,22 +1,12 @@
 const Sequelize = require('sequelize');
 
-let conn_string = "postgres://myhome:1234@myhome.pg:5432/myhome";
+let conn_string = "postgres://myhome:1234@backend-myhome.pg:5432/myhome";
 console.log(conn_string);
 const sequelize = new Sequelize(conn_string);
-// const db = {};
+const db = {};
 
-// db.Sequelize = Sequelize;
-// db.sequelize = sequelize;
-
-// db.users = require("../models/User");
-// db.properties = require("../models/Property");
-
-// db.users.hasMany(db.properties, { as: "properties" });
-// db.properties.belongsTo(db.users, {
-//   foreignKey: "idUsuario",
-//   as: "IdUsuario",
-// });
-
+db.Sequelize = Sequelize;
+db.sequelize = sequelize;
 
 // Init data
 // db.users.create(
@@ -43,6 +33,6 @@ const testDbConnection = async () => {
 };
 
 module.exports = {
-  sq: sequelize,
+  sq: db.sequelize,
   testDbConnection,
 };

@@ -1,8 +1,8 @@
 version: "3.1"
 
 services:
-  myhome.app:
-    container_name: myhome.app
+  backend-myhome.app:
+    container_name: backend-myhome.app
     image: backend-myhome:latest
     build:
       context: ./
@@ -16,10 +16,12 @@ services:
     command: node --inspect=0.0.0.0:9229 index.js
     environment:
       - PORT=8080
+    networks:
+      - local-dev-network
     depends_on:
-      - myhome.pg
-  myhome.pg:
-    container_name: myhome.pg
+      - backend-myhome.pg
+  backend-myhome.pg:
+    container_name: backend-myhome.pg
     image: postgres:latest
     volumes:
       - /shared_folder/postgresql:/var/lib/postgresql
@@ -27,8 +29,13 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_HOST=myhome.pg
+      - POSTGRES_HOST=backend-myhome.pg
       - POSTGRES_USER=myhome
       - POSTGRES_PASSWORD=1234
       - POSTGRES_DATABASE=myhome
       - POSTGRES_PORT=5432
+    networks:
+      - local-dev-network
+networks:
+  local-dev-network:
+    external: false
