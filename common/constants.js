@@ -18,6 +18,11 @@ const PropertyStateEnum = {
   DESPUBLICADA: 'Despublicada',
 };
 
+const PropertyTypeEnum = {
+  HOUSE: 'House',
+  DEPARTMENT: 'Department'
+};
+
 const ContenidoEnum = ["foto", "video", "audio"];
 
 
@@ -43,6 +48,7 @@ module.exports = {
   RoleEnum,
   UserTypeEnum,
   PropertyStateEnum,
+  PropertyTypeEnum,
   ContenidoEnum,
   SALT_ROUNDS,
   defaultProfileGuestImage: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894991/dohnmb6blyd2ei1bjha7.png",

@@ -3,7 +3,7 @@ const { sq } = require('../db/database');
 const { PropertyState } = require('../models/State/PropertyState');
 
 const User = require('./User.js');
-const constants = require('../common/constants');
+const {PropertyTypeEnum, PropertyStateEnum} = require('../common/constants');
 const Location = require('./Location');
 
 const Property = sq.define('property', {
@@ -20,7 +20,8 @@ const Property = sq.define('property', {
     type: DataTypes.INTEGER,
   },
   propertyType: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM,
+    values: Object.values(PropertyTypeEnum),
     allowNull: false
   },
   title: {
@@ -62,18 +63,57 @@ const Property = sq.define('property', {
     type: DataTypes.INTEGER,
   },
   roofTop: {
-    type: DataTypes.BOOLEAN
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   balcony: {
-    type: DataTypes.BOOLEAN
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   vault: {
-    type: DataTypes.BOOLEAN
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  sum: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  laundry: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  swimming_pool: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  sport_field: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  solarium: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  gym: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  sauna: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  security: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  game_room: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   status: {
     type: DataTypes.ENUM,
-    values: Object.values(constants.PropertyStateEnum),
-    defaultValue: constants.PropertyStateEnum.INITIAL_1
+    values: Object.values(PropertyStateEnum),
+    defaultValue: PropertyStateEnum.INITIAL_1
   },
   rating: {
     type: DataTypes.INTEGER,

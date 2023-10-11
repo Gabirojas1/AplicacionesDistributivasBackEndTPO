@@ -3,6 +3,8 @@ const { sq } = require('../db/database.js');
 
 const Property = require('./Property.js');
 
+const { PropertyTypeEnum } = require('../common/constants')
+
 const User = sq.define('user', {
   idUsuario: {
     type: Sequelize.INTEGER,
@@ -71,7 +73,7 @@ User.sync().then(async () => {
         Property.create({
           idUsuario: mockedUser.idUsuario,
           idLocation: 9999,
-          propertyType: "casa",
+          propertyType: PropertyTypeEnum.HOUSE,
           title: "Casa en Lomas de Zamora",
           description: "Casa en el centro de Lomas de Zamora con cuatro ambientes y multiples ammenities.",
           antiquity: 1,
@@ -91,7 +93,7 @@ User.sync().then(async () => {
 
         Property.create({
           idUsuario: mockedUser.idUsuario,
-          propertyType: "depto",
+          propertyType: PropertyTypeEnum.DEPARTMENT,
           title: "Depto en Banfield",
           description: "Depto en el centro de Banfield con cuatro ambientes y multiples ammenities."
         });

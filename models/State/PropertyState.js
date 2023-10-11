@@ -59,7 +59,14 @@ class InitialState1 {
 
         this.execute = async function () {
 
-            if(this.state.property.idLocation) {
+            // TODO! logica de location a traves de Google o algun otro 
+            // proveedor
+            if(this.state.property.idLocation
+                && this.state.property.title
+                && this.state.property.description
+                // TODO! propertyType
+                // TODO! modelo de contrato
+                ) {
                 console.log("proceed execute Initial State 1 -> 2");
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_2);
             }
@@ -119,8 +126,6 @@ class InitialState3 {
                 && this.state.property.mtsCovered
                 && this.state.property.mtsHalfCovered
                 && this.state.property.mtsUncovered
-                && this.state.property.position
-                && this.state.property.orientation
                 && this.state.property.numEnvironments
                 && this.state.property.numRooms
                 && this.state.property.numBathrooms
@@ -152,7 +157,10 @@ class InitialState4 {
         this.execute = async function () {
 
             // TODO! completar logica
-            if(this.state.property.antiquity
+            if(this.state.property.position
+                && this.state.property.orientation
+                // TODO! imagenes
+                // TODO! multimedia (videos)
             ) {
                 console.log("proceed execute Initial State 4 -> Publicada");
                 await this.state.transitionTo(PropertyStateEnum.PUBLICADA);
@@ -179,6 +187,10 @@ class Publicada {
 
         this.execute = async function () {
             return this.state;
+            // TODO! logica para despublicar 
+
+
+
            // console.log("despublicar");
             // await this.state.transitionTo(PropertyStateEnum.DESPUBLICADA);
         };
