@@ -1,9 +1,10 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const { sq } = require('../db/database')
-const { PropertyState } = require('../models/State/PropertyState')
+const { sq } = require('../db/database');
+const { PropertyState } = require('../models/State/PropertyState');
 
 const User = require('./User.js');
 const constants = require('../common/constants');
+const Location = require('./Location');
 
 const Property = sq.define('property', {
   idProperty: {
@@ -16,11 +17,11 @@ const Property = sq.define('property', {
     allowNull: false
   },
   idLocation: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
   },
   propertyType: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: false
   },
   title: {
     type: DataTypes.STRING,
@@ -100,6 +101,12 @@ Property.sync().then(async () => {
 Property.associate = function (models) {
   Property.belongsTo(User, {
     foreignKey: { name: 'idUsuario', allowNull: false }
+  });
+}
+
+Property.associate = function (models) {
+  Property.belongsTo(Location, {
+    foreignKey: { name: 'idLocation', allowNull: false }
   });
 }
 

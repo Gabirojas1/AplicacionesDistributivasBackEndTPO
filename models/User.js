@@ -1,7 +1,7 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const { sq } = require('../db/database.js')
+const { sq } = require('../db/database.js');
 
-const Property = require('./Property.js')
+const Property = require('./Property.js');
 
 const User = sq.define('user', {
   idUsuario: {
@@ -70,7 +70,7 @@ User.sync().then(async () => {
         
         Property.create({
           idUsuario: mockedUser.idUsuario,
-          idLocation: "TODO!",
+          idLocation: 9999,
           propertyType: "casa",
           title: "Casa en Lomas de Zamora",
           description: "Casa en el centro de Lomas de Zamora con cuatro ambientes y multiples ammenities.",
@@ -86,8 +86,14 @@ User.sync().then(async () => {
           numCars: 2,
           roofTop: true,
           balcony: true,
-          vault: true,
-          status: "Publicada",
+          vault: true
+        });
+
+        Property.create({
+          idUsuario: mockedUser.idUsuario,
+          propertyType: "depto",
+          title: "Depto en Banfield",
+          description: "Depto en el centro de Banfield con cuatro ambientes y multiples ammenities."
         });
       }
   }).catch((error) => {
