@@ -1,3 +1,4 @@
+const constants = require('../../common/constants');
 const Property = require('../../models/Property');
 const { Op, where } = require('sequelize');
 
@@ -92,7 +93,7 @@ const addProperty = async ({ idUsuario, propertyType, modalType, title, descript
 		modalType: modalType,
 		title: title,
 		description: description,
-		status: "Initial_1",
+		status: constants.PropertyStateEnum.INITIAL_1,
 	}).then(res => {
 		property = res;
 	}).catch((error) => {

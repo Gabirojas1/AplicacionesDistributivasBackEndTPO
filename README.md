@@ -55,3 +55,21 @@ switch to myhome database
 
 > \dt
 list all tables
+
+
+# Estado de Propiedad
+```mermaid
+stateDiagram-v2
+[*] --> Initial_1
+Initial_1 --> Initial_2
+Initial_2 --> Initial_1
+Initial_2 --> Initial_3
+Initial_3 --> Initial_2
+Initial_3 --> Initial_4
+Initial_4 --> Initial_3
+Initial_4 --> Publicada
+Publicada --> Despublicada
+Despublicada --> [*]
+Publicada --> [*]
+
+```

@@ -1,7 +1,9 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const { sq } = require('../db/database')
+const { PropertyState } = require('../models/State/PropertyState')
 
-const User = require('./User.js')
+const User = require('./User.js');
+const constants = require('../common/constants');
 
 const Property = sq.define('property', {
   idProperty: {
@@ -68,25 +70,35 @@ const Property = sq.define('property', {
     type: DataTypes.BOOLEAN
   },
   status: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: "Initial_1"
+    type: DataTypes.ENUM,
+    values: Object.values(constants.PropertyStateEnum),
+    defaultValue: constants.PropertyStateEnum.INITIAL_1
   },
   rating: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   }
 },
-{
-  tableName: 'properties',
-});
+  {
+    tableName: 'properties',
+    hooks: {
+      beforeSave: async (property) => {
+        await new PropertyState(property).execute()
+          .then(res => {
+            return res.property;
+          }).catch((error) => {
+            console.error('Failed to transition state : ', error);
+          });
+      }
+    }
+  });
 
 Property.sync().then(async () => {
   console.log("Initializing Properties data. . . . . . . ");
 });
 
-Property.associate = function(models) {
-  Property.belongsTo (User, {
+Property.associate = function (models) {
+  Property.belongsTo(User, {
     foreignKey: { name: 'idUsuario', allowNull: false }
   });
 }
