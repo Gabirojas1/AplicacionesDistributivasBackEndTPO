@@ -139,6 +139,12 @@ Property.sync().then(async () => {
 });
 
 Property.associate = function (models) {
+  Property.hasMany(ContractType, {
+    foreignKey: { name: 'idProperty', allowNull: false }
+  });
+}
+
+Property.associate = function (models) {
   Property.belongsTo(User, {
     foreignKey: { name: 'idUsuario', allowNull: false }
   });

@@ -58,8 +58,7 @@ Location.sync().then(async () => {
 
   await Location.findOne({
     where: {
-      longitud: longitud,
-      latitud: latitud
+      idLocation: 9999,
     }
   }).then(async res => {
 

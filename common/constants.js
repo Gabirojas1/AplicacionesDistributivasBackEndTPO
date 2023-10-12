@@ -23,6 +23,24 @@ const PropertyTypeEnum = {
   DEPARTMENT: 'Department'
 };
 
+const ContractTypeEnum = {
+  RENT: 'Rent',
+  SALE: 'Sale',
+};
+
+const ContractTypeStateEnum = {
+  INITIALIZED: "Initialized",
+  RESERVED: "Reserved",
+  COMPLETED: "Completed",
+  FINALIZED: "Finalized,"
+}
+
+const CurrencyTypeEnum = {
+  ARS: "AR$",
+  USD: "US$"
+}
+
+
 const ContenidoEnum = ["foto", "video", "audio"];
 
 
@@ -50,6 +68,9 @@ module.exports = {
   PropertyStateEnum,
   PropertyTypeEnum,
   ContenidoEnum,
+  ContractTypeEnum,
+  ContractTypeStateEnum,
+  CurrencyTypeEnum,
   SALT_ROUNDS,
   defaultProfileGuestImage: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894991/dohnmb6blyd2ei1bjha7.png",
   defaultProfileStudentImage: "https://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894850/rjhj017czkwubzqiw9uu.png",

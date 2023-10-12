@@ -3,7 +3,8 @@ const { sq } = require('../db/database.js');
 
 const Property = require('./Property.js');
 
-const { PropertyTypeEnum } = require('../common/constants')
+const { PropertyTypeEnum, ContractTypeEnum, CurrencyTypeEnum } = require('../common/constants');
+const ContractType = require('./ContractType.js');
 
 const User = sq.define('user', {
   idUsuario: {
@@ -43,12 +44,12 @@ const User = sq.define('user', {
     defaultValue: "Initial"
   }
 },
-{
-  tableName: 'users',
-});
+  {
+    tableName: 'users',
+  });
 
 User.sync().then(async () => {
-  
+
   console.log("Initializing User data. . . . . . . ");
 
   let userMail = "gaxelac@outlook.com";
@@ -59,22 +60,24 @@ User.sync().then(async () => {
     }
   }).then(async res => {
 
-      if (!res) {
+    if (!res) {
 
-        const mockedUser = await User.create({
-          firstName: "FirstName",
-          lastName: "LastName",
-          userType: "Usuario",
-          status: "Confirmado",
-          mail: userMail,
-          password: "$2b$06$Nqq5r0jxYW8YO6K7d83ug.9fvDcLF3Ul3uzrXhC/ty9K5UZKW2F1a",
-        });
-        
-        Property.create({
+      const mockedUser = await User.create({
+        firstName: "FirstName",
+        lastName: "LastName",
+        userType: "Usuario",
+        status: "Confirmado",
+        mail: userMail,
+        password: "$2b$06$Nqq5r0jxYW8YO6K7d83ug.9fvDcLF3Ul3uzrXhC/ty9K5UZKW2F1a",
+      });
+
+      await Property.findOrCreate({
+        where: { idProperty: 9999 },
+        defaults: {
           idUsuario: mockedUser.idUsuario,
           idLocation: 9999,
           propertyType: PropertyTypeEnum.HOUSE,
-          title: "Casa en Lomas de Zamora",
+          title: "Venta casa en Lomas de Zamora",
           description: "Casa en el centro de Lomas de Zamora con cuatro ambientes y multiples ammenities.",
           antiquity: 1,
           mtsCovered: 50,
@@ -89,17 +92,23 @@ User.sync().then(async () => {
           roofTop: true,
           balcony: true,
           vault: true
-        });
+        }
+      });
 
-        Property.create({
+
+
+      await Property.findOrCreate({
+        where: { idProperty: 9998 },
+        defaults: {
           idUsuario: mockedUser.idUsuario,
           propertyType: PropertyTypeEnum.DEPARTMENT,
-          title: "Depto en Banfield",
+          title: "Renta depto en Banfield",
           description: "Depto en el centro de Banfield con cuatro ambientes y multiples ammenities."
-        });
-      }
+        }
+      });
+    }
   }).catch((error) => {
-      console.error('Failed to insert data : ', error);
+    console.error('Failed to insert data : ', error);
   });
 
 });
