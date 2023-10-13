@@ -58,7 +58,7 @@ const signup = async (req, res = response) => {
     });
 
     // TODO axel: hacer que sea un token de un solo uso -- cargar en la db, agregar marca de registro completo, volar de la db.
-    const token = await generateJWT({ idUsuario: user.idUsuario });
+    const token = await generateJWT({ id: user.id });
 
     const mailOptions = {
       ...constants.mailoptions,
@@ -105,7 +105,7 @@ const confirmSignup = async (req, res = response) => {
       return res.status(401).json({ err: "error decrypt token" });
     }
 
-    UserRepository.getUserByIdUsuario(decoded.idUsuario).then(async (user) => {
+    UserRepository.getUserByIdUsuario(decoded.id).then(async (user) => {
       if (!user) {
         /* return res
                     .status(401)
@@ -115,7 +115,7 @@ const confirmSignup = async (req, res = response) => {
         );
       }
 
-      let bret = await UserRepository.confirmSignup(decoded.idUsuario);
+      let bret = await UserRepository.confirmSignup(decoded.id);
       if (!bret) {
         return res.sendFile(
           path.resolve("public/signup-complete-fail-03.html")

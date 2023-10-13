@@ -1,7 +1,7 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const { sq } = require('../db/database');
 
-const Property = require('./Property');
+const property = require('./Property');
 
 const constants = require('../common/constants');
 
@@ -84,10 +84,10 @@ Location.sync().then(async () => {
 
 });
 
-Location.associate = function (models) {
-  Location.hasMany(Property, {
-    foreignKey: { name: 'idProperty', allowNull: false }
-  });
-}
+// Location.associate = function (models) {
+//   Location.hasMany(property, {
+//     foreignKey: { name: 'propertyId', allowNull: false }
+//   });
+// }
 
 module.exports = Location;

@@ -5,17 +5,13 @@ const { PropertyState } = require('./State/PropertyState');
 const { ContractTypeEnum, ContractTypeStateEnum, CurrencyTypeEnum} = require('../common/constants');
 const Property = require('./Property');
 
-// ContractType	idContractType	PK	idProperty	FK	
-// contractType	ContractType	price	Money	expPrice	Money	
-// currency	CurrencyType	contractDays	Number	status	
-// EstadoPropiedadContrato
-const ContractType = sq.define('contract_type', {
+const ContractType = sq.define('type', {
   idContractType: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     primaryKey: true
   },
-  idProperty: {
+  propertyId: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
@@ -55,7 +51,7 @@ ContractType.sync().then(async () => {
   await ContractType.findOrCreate({
     where: { idContractType: 9999 },
     defaults: {
-      idProperty: 9999,
+      propertyId: 9999,
       contractType: ContractTypeEnum.SALE,
       price: 999,
       expPrice: 888,
@@ -66,7 +62,7 @@ ContractType.sync().then(async () => {
   await ContractType.findOrCreate({
     where: { idContractType: 9998 },
     defaults: {
-      idProperty: 9998,
+      propertyId: 9998,
       contractType: ContractTypeEnum.RENT,
       price: 99,
       expPrice: 12,
@@ -77,10 +73,10 @@ ContractType.sync().then(async () => {
 
 });
 
-ContractType.associate = function (models) {
-  ContractType.belongsTo(Property, {
-    foreignKey: { name: 'idProperty', allowNull: false }
-  });
-}
+// ContractType.associate = function (models) {
+//   ContractType.belongsTo(Property, {
+//     foreignKey: { name: 'propertyId', allowNull: false }
+//   });
+// }
 
 module.exports = ContractType;

@@ -131,7 +131,7 @@ paths:
           schema:
             type: string
           example: Bearer eyJkuaI1234xyz
-        - name: userId
+        - name: id
           description: user id
           required:	true
           in: header
@@ -172,7 +172,7 @@ paths:
           schema:
             type: string
           example: Bearer eyJkuaI1234xyz
-        - name: userId
+        - name: id
           description: user id
           required:	true
           in: header

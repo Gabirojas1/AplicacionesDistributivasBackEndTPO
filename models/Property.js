@@ -7,17 +7,14 @@ const {PropertyTypeEnum, PropertyStateEnum} = require('../common/constants');
 const Location = require('./Location');
 
 const Property = sq.define('property', {
-  idProperty: {
+  id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     primaryKey: true
   },
-  idUsuario: {
+  userId: {
     type: DataTypes.INTEGER,
     allowNull: false
-  },
-  idLocation: {
-    type: DataTypes.INTEGER,
   },
   propertyType: {
     type: DataTypes.ENUM,
@@ -31,6 +28,12 @@ const Property = sq.define('property', {
   description: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  idContractType: {
+    type: DataTypes.INTEGER,
+  },
+  idLocation: {
+    type: DataTypes.INTEGER,
   },
   antiquity: {
     type: DataTypes.INTEGER,
@@ -138,22 +141,6 @@ Property.sync().then(async () => {
   console.log("Initializing Properties data. . . . . . . ");
 });
 
-Property.associate = function (models) {
-  Property.hasMany(ContractType, {
-    foreignKey: { name: 'idProperty', allowNull: false }
-  });
-}
 
-Property.associate = function (models) {
-  Property.belongsTo(User, {
-    foreignKey: { name: 'idUsuario', allowNull: false }
-  });
-}
-
-Property.associate = function (models) {
-  Property.belongsTo(Location, {
-    foreignKey: { name: 'idLocation', allowNull: false }
-  });
-}
 
 module.exports = Property;

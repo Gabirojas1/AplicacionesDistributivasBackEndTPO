@@ -37,7 +37,7 @@ propertiesCtrl.addProperty);
 // actualizar property
 router.patch("/", 
 [
-  // check("idProperty", "El idProperty es obligatorio").not().isEmpty(),
+  // check("propertyId", "El propertyId es obligatorio").not().isEmpty(),
   // check("nombre", "El nombre es obligatorio").not().isEmpty(),
   // check("descripcion", "La descripcion es obligatorio").not().isEmpty(),
   // check("tipo", "El tipo es obligatorio").not().isEmpty(),
@@ -50,7 +50,7 @@ propertiesCtrl.updateProperty);
 // eliminar property
 router.delete("/", 
 [
-  check("idProperty", "El idProperty es obligatorio").not().isEmpty(),
+  check("propertyId", "El propertyId es obligatorio").not().isEmpty(),
   validateField,
 ],
 checkAuth,

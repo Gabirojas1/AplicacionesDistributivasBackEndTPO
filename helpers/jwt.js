@@ -22,7 +22,7 @@ const generateJWT = (uid) => {
 const verifyJWT = (token = "") =>  {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return {"err": false, "idUsuario": decoded.uid.idUsuario};
+    return {"err": false, "id": decoded.uid.id};
   } catch (error) {
     return {"err": true, "uid": null};
   }

@@ -58,16 +58,20 @@ class InitialState1 {
         this.statusStr = PropertyStateEnum.INITIAL_1;
 
         this.execute = async function () {
-
-            // TODO! logica de location a traves de Google o algun otro 
-            // proveedor
+            //let contractType = await Type.findOne({
+            //    where: {
+            //        propertyId: this.state.property.propertyId,
+            //    }
+            //});
+ 
+            // Campos requeridos para progresar a State 2
             if(this.state.property.idLocation
                 && this.state.property.title
                 && this.state.property.description
-                // TODO! propertyType
-                // TODO! modelo de contrato
+                && this.state.property.propertyType
+                //&& (this.state.property.getTypes().length >=1)
                 ) {
-                console.log("proceed execute Initial State 1 -> 2");
+                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Initial_2 state.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_2);
             }
             return this.state;

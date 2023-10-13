@@ -3,11 +3,11 @@ const { sq } = require('../db/database.js');
 
 const Property = require('./Property.js');
 
-const { PropertyTypeEnum, ContractTypeEnum, CurrencyTypeEnum } = require('../common/constants');
+const { PropertyTypeEnum, ContractTypeEnum, CurrencyTypeEnum, UserTypeEnum, UserStateEnum } = require('../common/constants');
 const ContractType = require('./ContractType.js');
 
 const User = sq.define('user', {
-  idUsuario: {
+  id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     primaryKey: true
@@ -38,6 +38,18 @@ const User = sq.define('user', {
   fantasyName: {
     type: DataTypes.STRING,
   },
+  cuit: {
+    type: DataTypes.STRING,
+  },
+  phone: {
+    type: DataTypes.STRING,
+  },
+  address: {
+    type: DataTypes.STRING,
+  },
+  photo: {
+    type: DataTypes.STRING,
+  },
   status: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -47,76 +59,91 @@ const User = sq.define('user', {
   {
     tableName: 'users',
   });
-
 User.sync().then(async () => {
 
   console.log("Initializing User data. . . . . . . ");
 
-  let userMail = "gaxelac@outlook.com";
+  let userMail = "inmobiliaria@my.home"
+  let userMail2 = "user@my.home";
 
-  await User.findOne({
-    where: {
-      mail: userMail
+  await User.findOrCreate({
+    where: { id: 8888 },
+    defaults: {
+      id: 8888,
+      firstName: "Jane",
+      lastName: "Doe",
+      userType: UserTypeEnum.USUARIO,
+      // TODO! state pattern de usuario
+      status: UserStateEnum.CONFIRMED,
+      mail: userMail2,
+      password: "$2b$06$8wf1xpWSuUiqA5O5rCj9suJAyIwgoOFHuNTw583p4XTFTOp1wbI8G", //123456
+      phone: "+5491187654321",
+      //TODO! cloudinary
+      photo: "photourl.jpg"
     }
-  }).then(async res => {
+  })
 
-    if (!res) {
-
-      const mockedUser = await User.create({
-        firstName: "FirstName",
-        lastName: "LastName",
-        userType: "Usuario",
-        status: "Confirmado",
-        mail: userMail,
-        password: "$2b$06$Nqq5r0jxYW8YO6K7d83ug.9fvDcLF3Ul3uzrXhC/ty9K5UZKW2F1a",
-      });
-
-      await Property.findOrCreate({
-        where: { idProperty: 9999 },
-        defaults: {
-          idUsuario: mockedUser.idUsuario,
-          idLocation: 9999,
-          propertyType: PropertyTypeEnum.HOUSE,
-          title: "Venta casa en Lomas de Zamora",
-          description: "Casa en el centro de Lomas de Zamora con cuatro ambientes y multiples ammenities.",
-          antiquity: 1,
-          mtsCovered: 50,
-          mtsHalfCovered: 50,
-          mtsUncovered: 50,
-          position: "Horizontal",
-          orientation: "Norte",
-          numEnvironments: 4,
-          numRooms: 4,
-          numBathrooms: 2,
-          numCars: 2,
-          roofTop: true,
-          balcony: true,
-          vault: true
-        }
-      });
-
-
-
-      await Property.findOrCreate({
-        where: { idProperty: 9998 },
-        defaults: {
-          idUsuario: mockedUser.idUsuario,
-          propertyType: PropertyTypeEnum.DEPARTMENT,
-          title: "Renta depto en Banfield",
-          description: "Depto en el centro de Banfield con cuatro ambientes y multiples ammenities."
-        }
-      });
+  let user = await User.findOrCreate({
+    where: { id: 9999 },
+    defaults: {
+      id: 9999,
+      firstName: "John",
+      lastName: "Doe",
+      userType: UserTypeEnum.INMOBILIARIA,
+      // TODO! estado de usuario
+      status: UserStateEnum.CONFIRMED,
+      mail: userMail,
+      password: "$2b$06$8wf1xpWSuUiqA5O5rCj9suJAyIwgoOFHuNTw583p4XTFTOp1wbI8G", //123456
+      contactMail: "gaxelac@outlook.com",
+      fantasyName: "RE/MAX Argentina",
+      cuit: "99-12345678-88",
+      phone: "+5491187654321",
+      //TODO! cloudinary
+      photo: "photourl.jpg"
     }
-  }).catch((error) => {
-    console.error('Failed to insert data : ', error);
+  })
+  .then (async res => {
+
+    let prop1=await Property.create({
+      userId: res[0].id,
+      idLocation: 9999,
+      propertyType: PropertyTypeEnum.HOUSE,
+      title: "Casa en Lomas de Zamora",
+      description: "Casa en el centro de Lomas de Zamora con cuatro ambientes y multiples ammenities.",
+      antiquity: 1,
+      mtsCovered: 50,
+      mtsHalfCovered: 50,
+      mtsUncovered: 50,
+      position: "Horizontal",
+      orientation: "Norte",
+      numEnvironments: 4,
+      numRooms: 4,
+      numBathrooms: 2,
+      numCars: 2,
+      roofTop: true,
+      balcony: true,
+      vault: true
+    });
+
+    let prop2= await Property.create({
+      userId: res[0].id,
+      propertyType: PropertyTypeEnum.DEPARTMENT,
+      title: "Renta depto en Banfield",
+      description: "Depto en el centro de Banfield con cuatro ambientes y multiples ammenities.",
+  
+    });
+
+    res[0].addProperties([prop1, prop2]);
+
   });
+  
 
 });
 
-User.associate = function (models) {
-  User.hasMany(Property, {
-    foreignKey: { name: 'idUsuario', allowNull: false }
-  });
-}
+
+
+User.hasMany(Property);
+Property.belongsTo(User);
+
 
 module.exports = User;

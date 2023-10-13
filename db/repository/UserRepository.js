@@ -42,7 +42,7 @@ const getUserByIdUsuario = async(uid) => {
 
     await User.findOne({
         where: {
-            idUsuario: uid
+            id: uid
         }
     }).then(res => {
         user = res;
@@ -90,7 +90,7 @@ const confirmSignup = async(uid) => {
 
     await User.findOne({
         where: {
-            idUsuario: uid
+            id: uid
         }
     }).then(async res => {
         res.status = "Confirmado";
@@ -106,7 +106,7 @@ const confirmSignup = async(uid) => {
 const genOTP = async(uid, otp) => {
     try {
 
-        var query = `UPDATE users SET OTP = '${otp}' WHERE idUsuario = '${uid}' `;
+        var query = `UPDATE users SET OTP = '${otp}' WHERE id = '${uid}' `;
         const records = await pg_pool.query(query);
         if (records.rowCount >= 1) {
 
@@ -122,7 +122,7 @@ const genOTP = async(uid, otp) => {
 const updatePassword = async(uid, password) => {
     try {
 
-        var query = `UPDATE users SET OTP = '', password = '${password}' WHERE idUsuario = '${uid}' `;
+        var query = `UPDATE users SET OTP = '', password = '${password}' WHERE id = '${uid}' `;
         const records = await pg_pool.query(query);
         if (records.rowCount >= 1) {
 

@@ -43,7 +43,7 @@ const addProperty = async (req, res) => {
   const body = req.body;
 
   try {
-    let user = await UserRepository.getUserByIdUsuario(body.idUsuario);
+    let user = await UserRepository.getUserByIdUsuario(body.id);
     if (!user) {
       return res.status(401).json({
         status: "error",
@@ -86,16 +86,16 @@ const updateProperty = async (req, res) => {
   try {
 
     // Validar que la propiedad existe
-    // Tiene que existir con el idProperty y pertenecer al usuario loggeado.
+    // Tiene que existir con el propertyId y pertenecer al usuario loggeado.
     let properties = await PropertiesRepository.getProperties({
-      idProperty: body.idProperty,
-      idUsuario: body.idUsuario,
+      id: body.propertyId,
+      userId: body.userId,
       filterOwned: true
     });
     let property = properties[0];
 
     // El usuario no es dueño de la propiedad
-    if (properties.length < 1 || property.idUsuario != body.idUsuario) {
+    if (properties.length < 1 || property.userId != body.userId) {
       return res.status(401).json({
         status: "error",
         message: "No autorizado. La propiedad no existe o no te pertenece.",
@@ -135,7 +135,7 @@ const deleteProperty = async (req, res) => {
   try {
 
     // Validar que la propiedad existe
-    let properties = await PropertiesRepository.getProperties({ property_id: body.idProperty });
+    let properties = await PropertiesRepository.getProperties({ propertyId: body.propertyId });
     if (properties.length < 1) {
       return res.status(404).json({
         status: "error",

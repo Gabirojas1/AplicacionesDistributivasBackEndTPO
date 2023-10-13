@@ -25,23 +25,25 @@ const login = async (req, res = response) => {
 
   try {
     const usuario = await UserRepository.getUserByMail(mail);
-    if (!usuario) {
+    const validPassword = bcrypt.compareSync(password, usuario.password);
+    if (!usuario || !validPassword) {
       return res.status(400).json({
         ok: false,
-        message: "User or password incorrect",
+        message: "Credenciales invalidas.",
       });
     }
 
-    const validPassword = bcrypt.compareSync(password, usuario.password);
-    if (!validPassword || usuario.status != "Confirmado") {
+    
+    if (usuario.status != constants.UserStateEnum.CONFIRMED) {
+      // TODO! reenvio de email + logica cada 30 minutos.
       return res.status(400).json({
         ok: false,
-        message: "User or password incorrect",
+        message: "Tu usuario está en proceso de confirmación, revisa tu email. Lo reenviamos. ",
       });
     }
 
     // Generate JWT
-    const token = await generateJWT(usuario.idUsuario);
+    const token = await generateJWT(usuario.id);
     return res.json({
       ok: true,
       token,

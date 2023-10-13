@@ -9,6 +9,11 @@ const UserTypeEnum = {
   USUARIO: 'Usuario',
 };
 
+const UserStateEnum = {
+  INITIAL: 'Initial',
+  CONFIRMED: 'Confirmed',
+};
+
 const PropertyStateEnum = {
   INITIAL_1: 'Initial_1',
   INITIAL_2: 'Initial_2',
@@ -56,7 +61,7 @@ const auth = {
 const mailoptions = {
   from: "gaxelac@gmail.com",
   to: "gaxelac@gmail.com",
-  subject: "Registracion en proceso",
+  subject: "Registro en progreso",
 };
 
 
@@ -65,6 +70,7 @@ module.exports = {
   mailoptions,
   RoleEnum,
   UserTypeEnum,
+  UserStateEnum,
   PropertyStateEnum,
   PropertyTypeEnum,
   ContenidoEnum,

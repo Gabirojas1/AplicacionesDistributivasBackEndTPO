@@ -1,12 +1,13 @@
 const constants = require('../../common/constants');
 const Property = require('../../models/Property');
 const { Op, where } = require('sequelize');
+const User = require('../../models/User');
 
 /**
 * Gets properties by filtering query
 * @returns List of properties
 */
-const getProperties = async ({ idProperty, idUsuario, title, description,
+const getProperties = async ({ propertyId, id, title, description,
 	antiquity, mtsCovered, mtsUnconvered, position, orientation, numEnvironments,
 	numRooms, numBathrooms, numCars, roofTop, balcony, vault, filterOwned,
 	minRating, orderBy, orderType, skip, limit }) => {
@@ -14,16 +15,12 @@ const getProperties = async ({ idProperty, idUsuario, title, description,
 	let result = [];
 
 	var whereStatement = {};
+	
+	if (id)
+		whereStatement.userId = id;
 
-	if (!filterOwned) {
-		whereStatement.status = "Publicada";
-	}
-
-	if (idUsuario)
-		whereStatement.idUsuario = idUsuario;
-
-	if (idProperty)
-		whereStatement.idProperty = idProperty;
+	if (propertyId)
+		whereStatement.propertyId = propertyId;
 
 	if (title) {
 		whereStatement.title = {
@@ -52,12 +49,22 @@ const getProperties = async ({ idProperty, idUsuario, title, description,
 		}
 	}
 
-	await Property.findAll({
+	if (!filterOwned) {
+		whereStatement.status = "Publicada";
+	}
+
+	var findStatement = {
 		where: whereStatement,
 		order: [orderStatement],
 		offset: skip,
 		limit: limit
-	}).then(res => {
+	};
+
+	// if (!filterOwned) {
+	// 	findStatement.include = 'user';
+	// }
+
+	await Property.findAll(findStatement).then(res => {
 		result = res;
 
 		// TODO!
@@ -76,31 +83,47 @@ const getProperties = async ({ idProperty, idUsuario, title, description,
 	return result;
 };
 
-// Agrega propiedad
-const addProperty = async ({ idUsuario, propertyType, modalType, title, description }) => {
-	// antiquity, mtsCovered, mtsHalfCovered, mtsUncovered, position,
-	// orientation, numEnvironments, numRooms, numBathrooms, numCars, roofTop, balcony, vault, status
+/**
+ * Agrega propiedad con informacion básica o información completa.
+ * Los campos mínimos obligatorios son los que no pueden ser null en la base de datos:
+ * 
+ * - id: obtenido automaticamente con el token de Authorization. 
+ * Es el id del usuario loggeado y se utilizara para adjudicarle la propiedad a crear.
+ * - propertyType: Tipo de Propiedad (Casa, Depto, etc)
+ * - title: titulo principal a mostrar de la propiedad.
+ * - descripcion: breve descripcion del estado de la propiedad.
+ * 
+ * Se pueden recibir mas campos especificados en el body pero no son obligatorios.
+ * 
+ * El estado de la propiedad es automáticamente definido a través de State Pattern
+ * según los campos enviados en ProperyState.js.
+ * 
+ * El estado inicial con los campos mínimos necesarios es INITIAL_1.
+ * 
+ * @param {} body campos a utilizar para dar de alta la propiedad. reference: ../Models/Property.js 
+ * @returns 
+ */
+const addProperty = async (body) => {
+	let result = null;
 
-	let property = null;
 
-	if (idUsuario == undefined || idUsuario.length < 1) {
-		return null
-	}
+	// Crearla con la info del body.
+    var clone = JSON.parse(JSON.stringify(body));
+	clone.userId = body.id;
+    delete clone.id;
 
-	await Property.create({
-		idUsuario: idUsuario,
-		propertyType: propertyType,
-		modalType: modalType,
-		title: title,
-		description: description,
-		status: constants.PropertyStateEnum.INITIAL_1,
-	}).then(res => {
-		property = res;
-	}).catch((error) => {
-		console.error('Failed to retrieve data : ', error);
-	});
+	await Property.create(clone)
+		.then(res => {
+			result = res;
 
-	return property;
+			// Type.create();
+
+		})
+		.catch((error) => {
+			console.error('Failed to retrieve data : ', error);
+		});
+
+	return result;
 };
 
 // actualiza propiedad existente
@@ -111,19 +134,8 @@ const updateProperty = async (property, data) => {
 };
 
 // Elimina propiedad existente
-const deleteProperty = async ({ idProperty }) => {
-	try {
-
-		let query = ` UPDATE propertiesSET estado = 0 WHERE idProperty = '${idProperty}' `;
-		const records = await pg_pool.query(query);
-		if (records.rowCount >= 1) {
-			return true
-		} else {
-			return false;
-		}
-	} catch (error) {
-		return false;
-	}
+const deleteProperty = async ({ propertyId }) => {
+	
 };
 
 
