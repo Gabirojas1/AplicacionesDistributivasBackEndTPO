@@ -1,10 +1,8 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const { sq } = require('../db/database');
-const { PropertyState } = require('../models/State/PropertyState');
+const { PropertyState } = require('./State/PropertyState');
 
-const User = require('./User.js');
 const {PropertyTypeEnum, PropertyStateEnum} = require('../common/constants');
-const Location = require('./Location');
 
 const Property = sq.define('property', {
   id: {
@@ -32,7 +30,7 @@ const Property = sq.define('property', {
   idContractType: {
     type: DataTypes.INTEGER,
   },
-  idLocation: {
+  locationId: {
     type: DataTypes.INTEGER,
   },
   antiquity: {
@@ -137,10 +135,7 @@ const Property = sq.define('property', {
     }
   });
 
-Property.sync().then(async () => {
-  console.log("Initializing Properties data. . . . . . . ");
-});
-
-
-
+  Property.sync().then(async () => {
+    console.log("Initializing Properties data. . . . . . . ");
+  });
 module.exports = Property;

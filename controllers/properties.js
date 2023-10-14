@@ -89,8 +89,8 @@ const updateProperty = async (req, res) => {
     // Validar que la propiedad existe
     // Tiene que existir con el propertyId y pertenecer al usuario loggeado.
     let properties = await PropertiesRepository.getProperties({
-      id: body.propertyId,
-      id: body.id,
+      propertyId: body.propertyId,
+      userId: body.id,
       filterOwned: true
     });
     let property = properties[0];

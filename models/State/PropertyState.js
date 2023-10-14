@@ -65,7 +65,7 @@ class InitialState1 {
             //});
  
             // Campos requeridos para progresar a State 2
-            if(this.state.property.idLocation
+            if(this.state.property.locationId
                 && this.state.property.title
                 && this.state.property.description
                 && this.state.property.propertyType

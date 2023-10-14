@@ -3,8 +3,9 @@ const { sq } = require('../db/database.js');
 
 const Property = require('./Property.js');
 
-const { PropertyTypeEnum, ContractTypeEnum, CurrencyTypeEnum, UserTypeEnum, UserStateEnum } = require('../common/constants');
+const { PropertyTypeEnum, ContractTypeEnum, CurrencyTypeEnum, UserTypeEnum, UserStateEnum } = require('../common/constants.js');
 const ContractType = require('./ContractType.js');
+const Location = require('./Location.js');
 
 const User = sq.define('user', {
   id: {
@@ -59,9 +60,28 @@ const User = sq.define('user', {
   {
     tableName: 'users',
   });
+  
 User.sync().then(async () => {
 
   console.log("Initializing User data. . . . . . . ");
+
+  let latitud = -77.0364;
+  let longitud = -77.0364;
+            
+  await Location.findOrCreate({
+    where: { id: 9999 },
+    defaults: {
+      id: 9999,
+      latitud: latitud,
+      longitud: longitud,
+      country: "Argentina",
+      province: "Buenos Aires",
+      district: "Lomas de Zamora",
+      street: "Av. Simpreviva",
+      streetNumber: 1234,
+      departament: "N/A"
+    }    
+  });
 
   let userMail = "inmobiliaria@my.home"
   let userMail2 = "user@my.home";
@@ -106,15 +126,15 @@ User.sync().then(async () => {
   })
     .then(async res => {
 
-      let prop1 = await Property.findOrCreate({
+      await Property.findOrCreate({
         where: { id: 9999 },
         defaults: {
           id: 9999,
           userId: res[0].id,
-          idLocation: 9999,
           propertyType: PropertyTypeEnum.HOUSE,
           title: "Mocked Casa",
           description: "Casa en el centro de Banfield con cuatro ambientes y multiples ammenities.",
+          locationId: 9999,
           antiquity: 1,
           mtsCovered: 50,
           mtsHalfCovered: 50,
@@ -129,9 +149,22 @@ User.sync().then(async () => {
           balcony: true,
           vault: true
         }
+      }).then(async res => {
+
+        await ContractType.findOrCreate({
+          where: { id: 9999 },
+          defaults: {
+            id: 9999,
+            propertyId: res[0].id,
+            contractType: ContractTypeEnum.SALE,
+            price: 999,
+            expPrice: 888,
+            currency: CurrencyTypeEnum.ARS,
+          }
+        });
       });
 
-      let prop2 = await Property.findOrCreate({
+      await Property.findOrCreate({
         where: { id: 9998 },
         defaults: {
           id: 9998,
@@ -141,19 +174,28 @@ User.sync().then(async () => {
           description: "Depto en el centro de Banfield con cuatro ambientes y multiples ammenities.",
 
         }
+      }).then(async res => {
+
+        await ContractType.findOrCreate({
+          where: { id: 9998 },
+          defaults: {
+            id: 9998,
+            propertyId: res[0].id,
+            contractType: ContractTypeEnum.RENT,
+            price: 99,
+            expPrice: 12,
+            currency: CurrencyTypeEnum.ARS,
+            contractDays: 30
+          }
+        });
+
       });
-
-      res[0].addProperties([prop1[0], prop2[0]]);
-
     });
-
-
 });
 
-
-
 User.hasMany(Property);
-Property.belongsTo(User);
+Property.hasMany(ContractType);
+Location.hasMany(Property);
 
 
 module.exports = User;
