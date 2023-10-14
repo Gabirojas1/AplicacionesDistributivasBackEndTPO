@@ -2,6 +2,8 @@ const constants = require('../../common/constants');
 const Property = require('../../models/Property');
 const { Op, where } = require('sequelize');
 const User = require('../../models/User');
+const ContractType = require('../../models/ContractType');
+const Location = require('../../models/Location');
 
 /**
 * Gets properties by filtering query
@@ -57,7 +59,8 @@ const getProperties = async ({ propertyId, userId, title, description,
 		where: whereStatement,
 		order: [orderStatement],
 		offset: skip,
-		limit: limit
+		limit: limit,
+		include: [ContractType, Location]
 	};
 
 	// if (!filterOwned) {

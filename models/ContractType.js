@@ -40,9 +40,6 @@ const ContractType = sq.define('contract_type', {
 },
   {
     tableName: 'contract_types',
-  });
+  }); 
 
-  ContractType.sync().then(async () => {
-    console.log("Initializing ContractType data. . . . . . . ");
-  });
 module.exports = ContractType;

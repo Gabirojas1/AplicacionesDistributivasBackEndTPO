@@ -58,18 +58,14 @@ class InitialState1 {
         this.statusStr = PropertyStateEnum.INITIAL_1;
 
         this.execute = async function () {
-            //let contractType = await Type.findOne({
-            //    where: {
-            //        propertyId: this.state.property.propertyId,
-            //    }
-            //});
+            let contractTypes = await this.state.property.getContract_types();
  
             // Campos requeridos para progresar a State 2
             if(this.state.property.locationId
                 && this.state.property.title
                 && this.state.property.description
                 && this.state.property.propertyType
-                //&& this.state.property.idContractType
+                && contractTypes.length >= 1
                 ) {
                 console.log(`propertyId(${this.state.property.propertyId}) transicionada a Initial_2 state.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_2);

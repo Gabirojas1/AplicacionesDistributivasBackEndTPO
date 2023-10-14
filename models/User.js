@@ -60,14 +60,18 @@ const User = sq.define('user', {
   {
     tableName: 'users',
   });
-  
+
 User.sync().then(async () => {
 
   console.log("Initializing User data. . . . . . . ");
+  await Location.sync();
+  await Property.sync();
+  await ContractType.sync();
+
 
   let latitud = -77.0364;
   let longitud = -77.0364;
-            
+
   await Location.findOrCreate({
     where: { id: 9999 },
     defaults: {
@@ -80,7 +84,7 @@ User.sync().then(async () => {
       street: "Av. Simpreviva",
       streetNumber: 1234,
       departament: "N/A"
-    }    
+    }
   });
 
   let userMail = "inmobiliaria@my.home"
@@ -162,6 +166,8 @@ User.sync().then(async () => {
             currency: CurrencyTypeEnum.ARS,
           }
         });
+
+        res[0].save();
       });
 
       await Property.findOrCreate({
@@ -189,13 +195,15 @@ User.sync().then(async () => {
           }
         });
 
+        res[0].save();
+
       });
     });
 });
 
-User.hasMany(Property);
-Property.hasMany(ContractType);
-Location.hasMany(Property);
+User.hasMany(Property, { foreignKey: 'userId' });
+Property.hasMany(ContractType, { foreignKey: 'propertyId' });
+Property.belongsTo(Location, { foreignKey: 'locationId' });
 
 
 module.exports = User;

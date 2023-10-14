@@ -3,6 +3,7 @@ const { sq } = require('../db/database');
 const { PropertyState } = require('./State/PropertyState');
 
 const {PropertyTypeEnum, PropertyStateEnum} = require('../common/constants');
+const ContractType = require('./ContractType');
 
 const Property = sq.define('property', {
   id: {
@@ -26,9 +27,6 @@ const Property = sq.define('property', {
   description: {
     type: DataTypes.STRING,
     allowNull: false
-  },
-  idContractType: {
-    type: DataTypes.INTEGER,
   },
   locationId: {
     type: DataTypes.INTEGER,
@@ -135,7 +133,4 @@ const Property = sq.define('property', {
     }
   });
 
-  Property.sync().then(async () => {
-    console.log("Initializing Properties data. . . . . . . ");
-  });
 module.exports = Property;
