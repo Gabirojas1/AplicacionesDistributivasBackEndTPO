@@ -7,7 +7,7 @@ const User = require('../../models/User');
 * Gets properties by filtering query
 * @returns List of properties
 */
-const getProperties = async ({ propertyId, id, title, description,
+const getProperties = async ({ propertyId, userId, title, description,
 	antiquity, mtsCovered, mtsUnconvered, position, orientation, numEnvironments,
 	numRooms, numBathrooms, numCars, roofTop, balcony, vault, filterOwned,
 	minRating, orderBy, orderType, skip, limit }) => {
@@ -16,11 +16,11 @@ const getProperties = async ({ propertyId, id, title, description,
 
 	var whereStatement = {};
 	
-	if (id)
-		whereStatement.userId = id;
+	if (userId)
+		whereStatement.userId = userId;
 
 	if (propertyId)
-		whereStatement.propertyId = propertyId;
+		whereStatement.id = propertyId;
 
 	if (title) {
 		whereStatement.title = {

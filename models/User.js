@@ -66,6 +66,7 @@ User.sync().then(async () => {
   let userMail = "inmobiliaria@my.home"
   let userMail2 = "user@my.home";
 
+  // Mocked Usuario
   await User.findOrCreate({
     where: { id: 8888 },
     defaults: {
@@ -83,7 +84,8 @@ User.sync().then(async () => {
     }
   })
 
-  let user = await User.findOrCreate({
+  // Mocked Inmobiliaria
+  await User.findOrCreate({
     where: { id: 9999 },
     defaults: {
       id: 9999,
@@ -102,41 +104,49 @@ User.sync().then(async () => {
       photo: "photourl.jpg"
     }
   })
-  .then (async res => {
+    .then(async res => {
 
-    let prop1=await Property.create({
-      userId: res[0].id,
-      idLocation: 9999,
-      propertyType: PropertyTypeEnum.HOUSE,
-      title: "Casa en Lomas de Zamora",
-      description: "Casa en el centro de Lomas de Zamora con cuatro ambientes y multiples ammenities.",
-      antiquity: 1,
-      mtsCovered: 50,
-      mtsHalfCovered: 50,
-      mtsUncovered: 50,
-      position: "Horizontal",
-      orientation: "Norte",
-      numEnvironments: 4,
-      numRooms: 4,
-      numBathrooms: 2,
-      numCars: 2,
-      roofTop: true,
-      balcony: true,
-      vault: true
+      let prop1 = await Property.findOrCreate({
+        where: { id: 9999 },
+        defaults: {
+          id: 9999,
+          userId: res[0].id,
+          idLocation: 9999,
+          propertyType: PropertyTypeEnum.HOUSE,
+          title: "Mocked Casa",
+          description: "Casa en el centro de Banfield con cuatro ambientes y multiples ammenities.",
+          antiquity: 1,
+          mtsCovered: 50,
+          mtsHalfCovered: 50,
+          mtsUncovered: 50,
+          position: "Horizontal",
+          orientation: "Norte",
+          numEnvironments: 4,
+          numRooms: 4,
+          numBathrooms: 2,
+          numCars: 2,
+          roofTop: true,
+          balcony: true,
+          vault: true
+        }
+      });
+
+      let prop2 = await Property.findOrCreate({
+        where: { id: 9998 },
+        defaults: {
+          id: 9998,
+          userId: res[0].id,
+          propertyType: PropertyTypeEnum.DEPARTMENT,
+          title: "Mocked Depto",
+          description: "Depto en el centro de Banfield con cuatro ambientes y multiples ammenities.",
+
+        }
+      });
+
+      res[0].addProperties([prop1[0], prop2[0]]);
+
     });
 
-    let prop2= await Property.create({
-      userId: res[0].id,
-      propertyType: PropertyTypeEnum.DEPARTMENT,
-      title: "Renta depto en Banfield",
-      description: "Depto en el centro de Banfield con cuatro ambientes y multiples ammenities.",
-  
-    });
-
-    res[0].addProperties([prop1, prop2]);
-
-  });
-  
 
 });
 

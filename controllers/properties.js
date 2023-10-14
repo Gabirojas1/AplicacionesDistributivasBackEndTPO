@@ -33,6 +33,7 @@ const getOwnedProperties = async (req, res) => {
   // Get Logged-Sn User properties....
   // don't filter by status, get em' all.
   req.filterOwned = true;
+  req.body.userId = req.body.id;
 
   return await getProperties(req, res);
 };
@@ -89,13 +90,13 @@ const updateProperty = async (req, res) => {
     // Tiene que existir con el propertyId y pertenecer al usuario loggeado.
     let properties = await PropertiesRepository.getProperties({
       id: body.propertyId,
-      userId: body.userId,
+      id: body.id,
       filterOwned: true
     });
     let property = properties[0];
 
     // El usuario no es dueño de la propiedad
-    if (properties.length < 1 || property.userId != body.userId) {
+    if (properties.length < 1 || property.userId != body.id) {
       return res.status(401).json({
         status: "error",
         message: "No autorizado. La propiedad no existe o no te pertenece.",

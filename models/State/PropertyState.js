@@ -69,7 +69,7 @@ class InitialState1 {
                 && this.state.property.title
                 && this.state.property.description
                 && this.state.property.propertyType
-                //&& (this.state.property.getTypes().length >=1)
+                //&& this.state.property.idContractType
                 ) {
                 console.log(`propertyId(${this.state.property.propertyId}) transicionada a Initial_2 state.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_2);

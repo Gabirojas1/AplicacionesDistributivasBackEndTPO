@@ -25,8 +25,16 @@ const login = async (req, res = response) => {
 
   try {
     const usuario = await UserRepository.getUserByMail(mail);
+    
+    if (!usuario) {
+      return res.status(400).json({
+        ok: false,
+        message: "Credenciales invalidas.",
+      });
+    }
+
     const validPassword = bcrypt.compareSync(password, usuario.password);
-    if (!usuario || !validPassword) {
+    if (!validPassword) {
       return res.status(400).json({
         ok: false,
         message: "Credenciales invalidas.",
@@ -34,13 +42,13 @@ const login = async (req, res = response) => {
     }
 
     
-    if (usuario.status != constants.UserStateEnum.CONFIRMED) {
+   // if (usuario.status != constants.UserStateEnum.CONFIRMED) {
       // TODO! reenvio de email + logica cada 30 minutos.
-      return res.status(400).json({
-        ok: false,
-        message: "Tu usuario está en proceso de confirmación, revisa tu email. Lo reenviamos. ",
-      });
-    }
+   //   return res.status(400).json({
+    //    ok: false,
+    //    message: "Tu usuario está en proceso de confirmación, revisa tu email. Lo reenviamos. ",
+   //   });
+    //}
 
     // Generate JWT
     const token = await generateJWT(usuario.id);
