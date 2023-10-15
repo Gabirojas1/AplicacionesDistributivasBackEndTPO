@@ -65,9 +65,7 @@ Initial_1 --> Initial_2
 Initial_2 --> Initial_1
 Initial_2 --> Initial_3
 Initial_3 --> Initial_2
-Initial_3 --> Initial_4
-Initial_4 --> Initial_3
-Initial_4 --> Publicada
+Initial_3 --> Publicada
 Publicada --> Despublicada
 Despublicada --> [*]
 Publicada --> [*]

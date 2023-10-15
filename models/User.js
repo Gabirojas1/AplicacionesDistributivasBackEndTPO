@@ -63,16 +63,15 @@ const User = sq.define('user', {
 
 User.sync().then(async () => {
 
-  console.log("Initializing User data. . . . . . . ");
+  console.log("Initializing mocked data. . . . . . . ");
   await Location.sync();
   await Property.sync();
   await ContractType.sync();
 
-
   let latitud = -77.0364;
   let longitud = -77.0364;
 
-  await Location.findOrCreate({
+  let location = await Location.findOrCreate({
     where: { id: 9999 },
     defaults: {
       id: 9999,
@@ -155,6 +154,8 @@ User.sync().then(async () => {
         }
       }).then(async res => {
 
+        res[0].setLocation(location[0]);
+
         await ContractType.findOrCreate({
           where: { id: 9999 },
           defaults: {
@@ -202,8 +203,11 @@ User.sync().then(async () => {
 });
 
 User.hasMany(Property, { foreignKey: 'userId' });
+
 Property.hasMany(ContractType, { foreignKey: 'propertyId' });
-Property.belongsTo(Location, { foreignKey: 'locationId' });
+
+Location.hasMany(Property, { foreignKey: 'locationId' });
+Property.belongsTo(Location, { foreignKey: 'propertyId' });
 
 
 module.exports = User;

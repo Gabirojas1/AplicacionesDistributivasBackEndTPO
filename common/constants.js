@@ -18,7 +18,6 @@ const PropertyStateEnum = {
   INITIAL_1: 'Initial_1',
   INITIAL_2: 'Initial_2',
   INITIAL_3: 'Initial_3',
-  INITIAL_4: 'Initial_4',
   PUBLICADA: 'Publicada',
   DESPUBLICADA: 'Despublicada',
 };
@@ -34,10 +33,11 @@ const ContractTypeEnum = {
 };
 
 const ContractTypeStateEnum = {
-  INITIALIZED: "Initialized",
+  PUBLISHED: "Published",
+  UNPUBLISHED: "Unpublished",
   RESERVED: "Reserved",
   COMPLETED: "Completed",
-  FINALIZED: "Finalized,"
+  FINALIZED: "Finalized"
 }
 
 const CurrencyTypeEnum = {

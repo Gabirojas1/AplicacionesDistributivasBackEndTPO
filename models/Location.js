@@ -29,22 +29,17 @@ const Location = sq.define('location', {
   },
   departament: {
     type: DataTypes.STRING,
-    allowNull: false
+    defaultValue: "N/A"
   },
   latitud: {
     type: DataTypes.DECIMAL(11, 2),
-    allowNull: false
   },
   longitud: {
     type: DataTypes.DECIMAL(11, 2),
-    allowNull: false
   }
 },
 {
   tableName: 'locations',
-});
-Location.sync().then(async () => {
-  console.log("Initializing Location data. . . . . . . ");
 });
 
 module.exports = Location;

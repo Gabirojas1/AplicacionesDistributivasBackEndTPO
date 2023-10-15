@@ -2,6 +2,8 @@ var constants = require("../common/constants");
 
 const UserRepository = require("../db/repository/UserRepository");
 const PropertiesRepository = require("../db/repository/PropertiesRepository.js");
+const Location = require("../models/Location");
+const ContractType = require("../models/ContractType");
 
 
 // Metodo general que es utilizado en dos endpoints distintos ya que es configurable el metodo de ordenamiento, por cuales campos filtrar
@@ -93,32 +95,44 @@ const updateProperty = async (req, res) => {
       userId: body.id,
       filterOwned: true
     });
-    let property = properties[0];
 
-    // El usuario no es dueño de la propiedad
-    if (properties.length < 1 || property.userId != body.id) {
+
+    // El usuario no es dueño de la propiedad o 
+    // La propiedad no existe
+    if (properties.length < 1) {
       return res.status(401).json({
         status: "error",
         message: "No autorizado. La propiedad no existe o no te pertenece.",
       });
     }
 
-    // Actualizarla con la info del body.
-    // Exceptuando campos no editables
-    var clone = JSON.parse(JSON.stringify(body));
-    delete clone.rating;
-
-    let result = await PropertiesRepository.updateProperty(property, clone);
-    if (!result) {
-      return res.status(200).json({
+    let property = properties[0];
+    if (property.userId != body.id) {
+      return res.status(401).json({
         status: "error",
+        message: "No autorizado. La propiedad no existe o no te pertenece.",
       });
     }
+
+    // update base property
+    let result = await PropertiesRepository.updateProperty(property, body);
+    if (!result) {
+      return res.status(500).json({
+        status: "error",
+        message: "unexpected error at updateProperty"
+      });
+    }
+
+    // refresh fields
+    finalResult = await PropertiesRepository.getProperties({
+      propertyId: result.id,
+      filterOwned: true
+    });
 
     return res.status(200).json({
       status: "ok",
       message: "propiedad actualizada",
-      data: result,
+      data: finalResult[0],
     });
   } catch (e) {
     return res

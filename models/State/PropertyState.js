@@ -5,7 +5,7 @@ class PropertyState {
 
         var property, statusStr, currentState;
 
-        this.getState = function(statusStr) {
+        this.getState = function (statusStr) {
             switch (statusStr) {
                 case PropertyStateEnum.INITIAL_1:
                     this.currentState = new InitialState1(this);
@@ -16,9 +16,7 @@ class PropertyState {
                 case PropertyStateEnum.INITIAL_3:
                     this.currentState = new InitialState3(this);
                     break;
-                case PropertyStateEnum.INITIAL_4:
-                    this.currentState = new InitialState4(this);
-                    break;
+
                 case PropertyStateEnum.PUBLICADA:
                     this.currentState = new Publicada(this);
                     break;
@@ -33,7 +31,7 @@ class PropertyState {
         this.property = prop;
         this.statusStr = prop.status;
         this.getState(this.statusStr);
-       
+
         this.transitionTo = async function (parm) {
             this.property.status = parm;
             this.getState(parm);
@@ -44,7 +42,44 @@ class PropertyState {
             return await this.currentState.execute();
         };
 
-        
+        this.validateRequiredFields = async function (statusStr) {
+
+            let result = false;
+            switch (statusStr) {
+                case PropertyStateEnum.INITIAL_1:
+                    let contractTypes = await this.property.getContract_types();
+
+                    let location = await this.property.getLocation();
+
+                    // Campos requeridos para progresar a State 2
+                    result = this.property.title
+                        && this.property.description
+                        && this.property.propertyType
+                        && contractTypes.length >= 1
+                        && location;
+                    break;
+                case PropertyStateEnum.INITIAL_2:
+                    // Campos requeridos para progresar a State 3
+                    result = this.property.antiquity
+                        && this.property.mtsCovered
+                        && this.property.mtsHalfCovered
+                        && this.property.mtsUncovered
+                        && this.property.numEnvironments
+                        && this.property.numRooms
+                        && this.property.numBathrooms
+                        && this.property.numCars;
+                    break;
+                    // Campos requeridos para progresar a State 4
+                case PropertyStateEnum.INITIAL_3:
+                    result = this.property.position
+                        && this.property.orientation;
+                    break;
+                default:
+                    throw Error(" validateRequiredFields - error! not valid state ")
+            }
+
+            return result;
+        }
 
         this.toJSON = function () {
             this.currentState.toJSON();
@@ -58,15 +93,7 @@ class InitialState1 {
         this.statusStr = PropertyStateEnum.INITIAL_1;
 
         this.execute = async function () {
-            let contractTypes = await this.state.property.getContract_types();
- 
-            // Campos requeridos para progresar a State 2
-            if(this.state.property.locationId
-                && this.state.property.title
-                && this.state.property.description
-                && this.state.property.propertyType
-                && contractTypes.length >= 1
-                ) {
+            if (await this.state.validateRequiredFields(this.statusStr)) {
                 console.log(`propertyId(${this.state.property.propertyId}) transicionada a Initial_2 state.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_2);
             }
@@ -86,27 +113,16 @@ class InitialState2 {
 
         this.execute = async function () {
 
-            // TODO! completar logica
-            if(this.state.property.antiquity
-                && this.state.property.mtsCovered
-                && this.state.property.mtsHalfCovered
-                && this.state.property.mtsUncovered
-                && this.state.property.position
-                && this.state.property.orientation
-                && this.state.property.numEnvironments
-                && this.state.property.numRooms
-                && this.state.property.numBathrooms
-                && this.state.property.numCars
-            ) {
-                console.log("proceed execute Initial State 2 -> 3");
+            if(!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_1)) {
+                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 1.`);
+                await this.state.transitionTo(PropertyStateEnum.INITIAL_1);
+            }
+
+            if (await this.state.validateRequiredFields(this.statusStr)) {
+                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Initial_3 state.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_3);
             }
             return this.state;
-
-
-             // TODO! if some field missing, rollback to previous state.
-            //console.log("rollback execute Initial State 2 -> 1");
-            //await this.state.transitionTo(PropertyStateEnum.INITIAL_1);
         };
 
         this.toJSON = function () {
@@ -121,57 +137,20 @@ class InitialState3 {
 
         this.execute = async function () {
 
-            // TODO! completar logica
-            if(this.state.property.antiquity
-                && this.state.property.mtsCovered
-                && this.state.property.mtsHalfCovered
-                && this.state.property.mtsUncovered
-                && this.state.property.numEnvironments
-                && this.state.property.numRooms
-                && this.state.property.numBathrooms
-                && this.state.property.numCars
-            ) {
-                console.log("proceed execute Initial State 3 -> 4");
-                await this.state.transitionTo(PropertyStateEnum.INITIAL_4);
-            }
+            if(!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_2)) {
+                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 2.`);
+                await this.state.transitionTo(PropertyStateEnum.INITIAL_2);
+            } else if(!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_1)) {
+                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 2.`);
+                await this.state.transitionTo(PropertyStateEnum.INITIAL_1);
+            } 
 
-            return this.state;
-
-            // TODO! if some field missing, rollback to previous state.
-            //console.log("rollback execute Initial State 2 -> 1");
-           // console.log("rollback execute Initial State 3 -> 2");
-            //state.transitionTo(PropertyStateEnum.INITIAL_2);
-        };
-
-        this.toJSON = function () {
-            return this.statusStr;
-        };
-    }
-}
-
-class InitialState4 {
-    constructor(state) {
-        this.state = state;
-        this.statusStr = PropertyStateEnum.INITIAL_4;
-
-        this.execute = async function () {
-
-            // TODO! completar logica
-            if(this.state.property.position
-                && this.state.property.orientation
-                // TODO! imagenes
-                // TODO! multimedia (videos)
-            ) {
-                console.log("proceed execute Initial State 4 -> Publicada");
+            if (await this.state.validateRequiredFields(this.statusStr)) {
+                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Publicada state.`);
                 await this.state.transitionTo(PropertyStateEnum.PUBLICADA);
             }
 
             return this.state;
-
-            // // TODO! if some field missing, rollback to previous state.
-            //console.log("rollback execute Initial State 2 -> 1");
-            //console.log("rollback execute Initial State 4 -> 3");
-            //await this.state.transitionTo(PropertyStateEnum.DESPUBLICADA);
         };
 
         this.toJSON = function () {
@@ -186,12 +165,19 @@ class Publicada {
         this.statusStr = PropertyStateEnum.PUBLICADA;
 
         this.execute = async function () {
+            if(!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_3)) {
+                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 3.`);
+                await this.state.transitionTo(PropertyStateEnum.INITIAL_3);
+            } else if (!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_2)) {
+                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 2.`);
+                await this.state.transitionTo(PropertyStateEnum.INITIAL_2);
+            }  else if (!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_1)) {
+                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 1.`);
+                await this.state.transitionTo(PropertyStateEnum.INITIAL_1);
+            } 
             return this.state;
             // TODO! logica para despublicar 
-
-
-
-           // console.log("despublicar");
+            // console.log("despublicar");
             // await this.state.transitionTo(PropertyStateEnum.DESPUBLICADA);
         };
 
@@ -208,7 +194,7 @@ class Despublicada {
 
         this.execute = async function () {
             return this.state;
-           // console.log("publicar de nuevo");
+            // console.log("publicar de nuevo");
             // await this.state.transitionTo(PropertyStateEnum.PUBLICADA);
         };
 
@@ -223,7 +209,6 @@ module.exports = {
     InitialState1,
     InitialState2,
     InitialState3,
-    InitialState4,
     Publicada,
     Despublicada
 }

@@ -3,7 +3,7 @@ const Sequelize = require('sequelize');
 let conn_string = "postgres://myhome:1234@backend-myhome.pg:5432/myhome";
 console.log(conn_string);
 
-const sequelize = new Sequelize(conn_string);
+const sequelize = new Sequelize(conn_string, {logging: false});
 const db = {};
 
 db.Sequelize = Sequelize;

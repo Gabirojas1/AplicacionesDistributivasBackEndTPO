@@ -17,7 +17,7 @@ const getProperties = async ({ propertyId, userId, title, description,
 	let result = [];
 
 	var whereStatement = {};
-	
+
 	if (userId)
 		whereStatement.userId = userId;
 
@@ -108,37 +108,104 @@ const getProperties = async ({ propertyId, userId, title, description,
  */
 const addProperty = async (body) => {
 	let result = null;
-
-
+	
 	// Crearla con la info del body.
-    var clone = JSON.parse(JSON.stringify(body));
+	var clone = JSON.parse(JSON.stringify(body));
 	clone.userId = body.id;
-    delete clone.id;
+	delete clone.id;
 
-	await Property.create(clone)
+	// TODO! usar servicio de google para generar latitud y longitud de location
+	await Property.create(clone,
+		{
+			include: [ContractType, Location],
+		})
 		.then(res => {
 			result = res;
-
-			// Type.create();
-
 		})
 		.catch((error) => {
 			console.error('Failed to retrieve data : ', error);
 		});
 
+	result.save();
 	return result;
 };
 
 // actualiza propiedad existente
-const updateProperty = async (property, data) => {
-	await property.update(data);
+const updateProperty = async (property, body) => {
+
+	// Actualizarla con la info del body.
+    // Exceptuando campos no editables
+    var clone = JSON.parse(JSON.stringify(body));
+    delete clone.propertyId;
+    delete clone.rating;
+    delete clone.status;
+    delete clone.contract_types;
+    delete clone.location
+
+	await property.update(clone);
+
+	// agregar associations 
+
+	// Location
+	// TODO! servicio para obtener latitud y longitud en base a la info de location
+	if (body.location) {
+		let location = await Location.findOrCreate({
+			where: body.location,
+			defaults: body.location
+		});
+	
+		property.locationId = location[0].id;
+		property.location = location[0];
+		property.setLocation(location[0]);
+	}
+
+	// Tipos de Contrato
+	// por cada contract type que se quiere agregar
+	if (body.contract_types) {
+		await body.contract_types.forEach(async ctype => {
+
+			ctype.propertyId = property.id;
+	
+			// eliminamos campos editables para la busqueda
+			var whereStmt = JSON.parse(JSON.stringify(ctype));
+			whereStmt.propertyId = property.id;
+			delete whereStmt.price;
+			delete whereStmt.expPrice;
+			delete whereStmt.currency;
+			delete whereStmt.contractDays;
+	
+			// TODO! validar fields
+			// ejemplo Rent deberia tener contractDays
+			let res = await ContractType.findOrCreate({
+				where: whereStmt,
+				defaults: ctype
+			});
+	
+			let newCtype = res[0];
+			let created = res[1];
+	
+			// Si no existia, lo agregamos a la property
+			if (created) {
+				await property.addContract_type(newCtype);
+			}
+			// Si ya existia, actualizamos sus campos
+			else {	
+				newCtype.price = ctype.price;
+				newCtype.expPrice = ctype.expPrice;
+				newCtype.currency = ctype.currency;
+				newCtype.contractDays = ctype.contractDays;
+				await newCtype.save();
+			}
+		});
+	}
+	
 	await property.save();
 	return property;
 };
 
 // Elimina propiedad existente
 const deleteProperty = async ({ propertyId }) => {
-	
+
 };
 
 
