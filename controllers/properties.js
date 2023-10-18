@@ -77,7 +77,7 @@ const addProperty = async (req, res) => {
 
   } catch (e) {
     return res
-      .status(e.statusCode)
+      .status(e.statusCode ? e.statusCode : 500)
       .json({ status: e.name, message: e.message });
   }
 };

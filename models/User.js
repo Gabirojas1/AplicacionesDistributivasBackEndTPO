@@ -68,20 +68,20 @@ User.sync().then(async () => {
   await Property.sync();
   await ContractType.sync();
 
-  let latitud = -77.0364;
-  let longitud = -77.0364;
+  let latitude = -34.617047;
+  let longitude = -58.3819187;
 
   let location = await Location.findOrCreate({
-    where: { id: 9999 },
+    where: { id: "aaf30feed1000000001aaf" },
     defaults: {
-      id: 9999,
-      latitud: latitud,
-      longitud: longitud,
+      id: "aaf30feed1000000001aaf",
+      latitude: latitude,
+      longitude: longitude,
       country: "Argentina",
       province: "Buenos Aires",
-      district: "Lomas de Zamora",
-      street: "Av. Simpreviva",
-      streetNumber: 1234,
+      district: "Ciudad Autónoma de Buenos Aires",
+      street: "Lima",
+      streetNumber: 756,
       departament: "N/A"
     }
   });
@@ -137,7 +137,7 @@ User.sync().then(async () => {
           propertyType: PropertyTypeEnum.HOUSE,
           title: "Mocked Casa",
           description: "Casa en el centro de Banfield con cuatro ambientes y multiples ammenities.",
-          locationId: 9999,
+          locationId: "aaf30feed1000000001aaf",
           antiquity: 1,
           mtsCovered: 50,
           mtsHalfCovered: 50,
@@ -207,7 +207,7 @@ User.hasMany(Property, { foreignKey: 'userId' });
 Property.hasMany(ContractType, { foreignKey: 'propertyId' });
 
 Location.hasMany(Property, { foreignKey: 'locationId' });
-Property.belongsTo(Location, { foreignKey: 'propertyId' });
+Property.belongsTo(Location, { foreignKey: 'locationId' });
 
 
 module.exports = User;

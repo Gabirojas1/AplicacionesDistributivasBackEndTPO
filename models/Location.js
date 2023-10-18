@@ -3,8 +3,7 @@ const { sq } = require('../db/database');
 
 const Location = sq.define('location', {
   id: {
-    type: Sequelize.INTEGER,
-    autoIncrement: true,
+    type: DataTypes.STRING,
     primaryKey: true
   },
   country: {
@@ -31,11 +30,11 @@ const Location = sq.define('location', {
     type: DataTypes.STRING,
     defaultValue: "N/A"
   },
-  latitud: {
-    type: DataTypes.DECIMAL(11, 2),
+  latitude: {
+    type: DataTypes.FLOAT,
   },
-  longitud: {
-    type: DataTypes.DECIMAL(11, 2),
+  longitude: {
+    type: DataTypes.FLOAT,
   }
 },
 {

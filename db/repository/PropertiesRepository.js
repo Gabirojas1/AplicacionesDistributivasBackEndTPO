@@ -5,6 +5,9 @@ const User = require('../../models/User');
 const ContractType = require('../../models/ContractType');
 const Location = require('../../models/Location');
 
+const axios = require('axios');
+const { response } = require('express');
+
 /**
 * Gets properties by filtering query
 * @returns List of properties
@@ -108,25 +111,60 @@ const getProperties = async ({ propertyId, userId, title, description,
  */
 const addProperty = async (body) => {
 	let result = null;
-	
+
 	// Crearla con la info del body.
 	var clone = JSON.parse(JSON.stringify(body));
 	clone.userId = body.id;
 	delete clone.id;
 
-	// TODO! usar servicio de google para generar latitud y longitud de location
+	// TODO! usar servicio de google para generar latitude y longitude de location
 	await Property.create(clone,
 		{
-			include: [ContractType, Location],
+			include: [ContractType],
 		})
-		.then(res => {
+		.then(async res => {
 			result = res;
+
+			// reset location object from body
+			clone = JSON.parse(JSON.stringify(body))
+
+			// Location
+			if (clone.location) {
+
+				// campos no editables
+				delete clone.location.id;
+				delete clone.location.latitude;
+				delete clone.location.longitude;
+
+				// Google Maps call
+				let response = await geocodeAddress(clone.location.street, clone.location.streetNumber,
+					clone.location.district, clone.location.province, clone.location.country);
+
+				if (response && response.statusText == "OK") {
+
+					clone.location.id = response.data.results[0].place_id;
+					
+					clone.location.latitude = response.data.results[0].geometry.location.lat;
+					clone.location.longitude = response.data.results[0].geometry.location.lng;
+
+					aux = await Location.findOrCreate({
+						where: {id: clone.location.id},
+						defaults: clone.location
+					});
+
+					result.locationId = aux[0].id;
+					result.setLocation(aux[0]);
+				}
+				// TODO! handle API error
+			}
+
+			
 		})
 		.catch((error) => {
 			console.error('Failed to retrieve data : ', error);
 		});
 
-	result.save();
+	await result.save();
 	return result;
 };
 
@@ -134,26 +172,26 @@ const addProperty = async (body) => {
 const updateProperty = async (property, body) => {
 
 	// Actualizarla con la info del body.
-    // Exceptuando campos no editables
-    var clone = JSON.parse(JSON.stringify(body));
-    delete clone.propertyId;
-    delete clone.rating;
-    delete clone.status;
-    delete clone.contract_types;
-    delete clone.location
+	// Exceptuando campos no editables
+	var clone = JSON.parse(JSON.stringify(body));
+	delete clone.propertyId;
+	delete clone.rating;
+	delete clone.status;
+	delete clone.contract_types;
+	delete clone.location
 
 	await property.update(clone);
 
 	// agregar associations 
 
 	// Location
-	// TODO! servicio para obtener latitud y longitud en base a la info de location
+	// TODO! servicio para obtener latitude y longitude en base a la info de location
 	if (body.location) {
 		let location = await Location.findOrCreate({
 			where: body.location,
 			defaults: body.location
 		});
-	
+
 		property.locationId = location[0].id;
 		property.location = location[0];
 		property.setLocation(location[0]);
@@ -165,7 +203,7 @@ const updateProperty = async (property, body) => {
 		await body.contract_types.forEach(async ctype => {
 
 			ctype.propertyId = property.id;
-	
+
 			// eliminamos campos editables para la busqueda
 			var whereStmt = JSON.parse(JSON.stringify(ctype));
 			whereStmt.propertyId = property.id;
@@ -173,23 +211,23 @@ const updateProperty = async (property, body) => {
 			delete whereStmt.expPrice;
 			delete whereStmt.currency;
 			delete whereStmt.contractDays;
-	
+
 			// TODO! validar fields
 			// ejemplo Rent deberia tener contractDays
 			let res = await ContractType.findOrCreate({
 				where: whereStmt,
 				defaults: ctype
 			});
-	
+
 			let newCtype = res[0];
 			let created = res[1];
-	
+
 			// Si no existia, lo agregamos a la property
 			if (created) {
 				await property.addContract_type(newCtype);
 			}
 			// Si ya existia, actualizamos sus campos
-			else {	
+			else {
 				newCtype.price = ctype.price;
 				newCtype.expPrice = ctype.expPrice;
 				newCtype.currency = ctype.currency;
@@ -198,7 +236,7 @@ const updateProperty = async (property, body) => {
 			}
 		});
 	}
-	
+
 	await property.save();
 	return property;
 };
@@ -206,6 +244,38 @@ const updateProperty = async (property, body) => {
 // Elimina propiedad existente
 const deleteProperty = async ({ propertyId }) => {
 
+};
+
+/**
+ * Meotod de geocodificación la direccion en latitude y longitude utilizando google maps api
+ * @param {*} street_name Av Siempreviva 
+ * @param {*} street_number 12345
+ * @param {*} district Lomas de Zamora 
+ * @param {*} state Buenos Aires
+ * @param {*} country Argentina 
+ * @returns latitude y longitude
+ */
+const geocodeAddress = async (street_name, street_number, district, state, country) => {
+
+	let response = null;
+	let address = encodeURIComponent(street_name + " "
+		+ street_number + ", "
+		+ district + ", "
+		+ state + ", "
+		+ country)
+
+	// https://maps.googleapis.com/maps/api/geocode/json?address=Av+Siempre+Viva+1234,+Temperley,+Buenos+Aires&key=AIzaSyAnw2SpDqRg3YTMsbkzIgfbFeEEH6VMoF8
+	await axios.get('https://maps.googleapis.com/maps/api/geocode/json'
+		+ '?address=' + address
+		+ '&key=' + process.env.GMAPS_API_KEY)
+		.then(res => {
+			response = res;
+		})
+		.catch(error => {
+			console.log(error);
+		});
+
+	return response;
 };
 
 

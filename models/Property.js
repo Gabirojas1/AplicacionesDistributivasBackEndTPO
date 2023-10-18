@@ -29,7 +29,7 @@ const Property = sq.define('property', {
     allowNull: false
   },
   locationId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
   },
   antiquity: {
     type: DataTypes.INTEGER,

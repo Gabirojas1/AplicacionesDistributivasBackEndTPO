@@ -94,7 +94,7 @@ class InitialState1 {
 
         this.execute = async function () {
             if (await this.state.validateRequiredFields(this.statusStr)) {
-                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Initial_2 state.`);
+                console.log(`propertyId(${this.state.property.id}) transicionada a Initial_2 state.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_2);
             }
             return this.state;
@@ -114,12 +114,12 @@ class InitialState2 {
         this.execute = async function () {
 
             if(!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_1)) {
-                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 1.`);
+                console.log(`propertyId(${this.state.property.id}) transicionada a Inital 1.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_1);
             }
 
             if (await this.state.validateRequiredFields(this.statusStr)) {
-                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Initial_3 state.`);
+                console.log(`propertyId(${this.state.property.id}) transicionada a Initial_3 state.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_3);
             }
             return this.state;
@@ -138,15 +138,15 @@ class InitialState3 {
         this.execute = async function () {
 
             if(!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_2)) {
-                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 2.`);
+                console.log(`propertyId(${this.state.property.id}) transicionada a Inital 2.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_2);
             } else if(!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_1)) {
-                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 2.`);
+                console.log(`propertyId(${this.state.property.id}) transicionada a Inital 2.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_1);
             } 
 
             if (await this.state.validateRequiredFields(this.statusStr)) {
-                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Publicada state.`);
+                console.log(`propertyId(${this.state.property.id}) transicionada a Publicada state.`);
                 await this.state.transitionTo(PropertyStateEnum.PUBLICADA);
             }
 
@@ -166,13 +166,13 @@ class Publicada {
 
         this.execute = async function () {
             if(!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_3)) {
-                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 3.`);
+                console.log(`propertyId(${this.state.property.id}) transicionada a Inital 3.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_3);
             } else if (!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_2)) {
-                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 2.`);
+                console.log(`propertyId(${this.state.property.id}) transicionada a Inital 2.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_2);
             }  else if (!await this.state.validateRequiredFields(PropertyStateEnum.INITIAL_1)) {
-                console.log(`propertyId(${this.state.property.propertyId}) transicionada a Inital 1.`);
+                console.log(`propertyId(${this.state.property.id}) transicionada a Inital 1.`);
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_1);
             } 
             return this.state;
