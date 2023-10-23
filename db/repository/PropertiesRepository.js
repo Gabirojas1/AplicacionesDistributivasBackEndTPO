@@ -219,9 +219,10 @@ const getProperties = async ({
 			result =  {
 				"code": "200",
 				"timestamp": moment().unix(),
-				"page": skip + 1,
-				"cantTotal": totalRecords.toString(),
-				"cantPage": res.length.toString(),
+				"page": Math.floor(skip / limit) + 1,
+				"total": res.length,
+				"cantTotal": totalRecords,
+				"cantPage": Math.ceil(totalRecords/limit),
 				"data": res
 			}
 		}
