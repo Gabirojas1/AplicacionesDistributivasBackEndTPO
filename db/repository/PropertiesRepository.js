@@ -4,6 +4,7 @@ const { Op, where } = require('sequelize');
 const User = require('../../models/User');
 const ContractType = require('../../models/ContractType');
 const Location = require('../../models/Location');
+const moment = require('moment');
 
 const axios = require('axios');
 const { response } = require('express');
@@ -18,7 +19,7 @@ const getProperties = async ({
     roofTop, balcony, vault, filterOwned, minRating, orderBy, orderType, skip,
     limit, contractType, propertyType, sum, laundry, swimming_pool, sport_field, 
     solarium, gym, sauna, security, game_room, minPrice, maxPrice, expMinPrice, expMaxPrice,
-	currency, country, province, district
+	currency, country, province, district, status
 }) => {
 
 	let result = [];
@@ -58,8 +59,8 @@ const getProperties = async ({
 		}
 	}
 
-	if (!filterOwned) {
-		whereStatement.status = "Publicada";
+	if (status) {
+		whereStatement.status = status
 	}
 
 	if(propertyType)
@@ -201,30 +202,34 @@ const getProperties = async ({
 			where: Object.keys(locationTypeWhereClause).length ? locationTypeWhereClause : undefined,
         	required: Object.keys(locationTypeWhereClause).length ? true : false
 		}]
-	};
+	}
 
-
-	// if (!filterOwned) {
+	// if (filterOwned) {
 	// 	findStatement.include = 'user';
 	// }
 
+	let totalRecords = await Property.count({ where: whereStatement });
+
 	await Property.findAll(findStatement).then(res => {
-		result = res;
-
-		// TODO!
-		// obtenemos los resultados y creamos los
-		// value object de respuesta (complete property VO)
-		// 	let result = [];
-		// 	for (const record of res.rows) {
-
-		// 	}
-
-
+		if (!res.length) {
+			const error = new Error("Ningún resultado encontrado para los filtros indicados.")
+			error.status = 404
+			throw error
+		} else {
+			result =  {
+				"code": "200",
+				"timestamp": moment().unix(),
+				"page": skip + 1,
+				"cantTotal": totalRecords.toString(),
+				"cantPage": res.length.toString(),
+				"data": res
+			}
+		}
 	}).catch((error) => {
-		console.error('Failed to retrieve data : ', error);
-	});
+        throw error
+	})
 
-	return result;
+	return result
 };
 
 /**
