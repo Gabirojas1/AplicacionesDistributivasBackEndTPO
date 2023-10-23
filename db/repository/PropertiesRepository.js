@@ -12,10 +12,14 @@ const { response } = require('express');
 * Gets properties by filtering query
 * @returns List of properties
 */
-const getProperties = async ({ propertyId, userId, title, description,
-	antiquity, mtsCovered, mtsUnconvered, position, orientation, numEnvironments,
-	numRooms, numBathrooms, numCars, roofTop, balcony, vault, filterOwned,
-	minRating, orderBy, orderType, skip, limit }) => {
+const getProperties = async ({ 
+    propertyId, userId, title, description, antiquity, mtsCovered, mtsUnconvered,
+    position, orientation, numEnvironments, numRooms, numBathrooms, numCars,
+    roofTop, balcony, vault, filterOwned, minRating, orderBy, orderType, skip,
+    limit, contractType, propertyType, sum, laundry, swimming_pool, sport_field, 
+    solarium, gym, sauna, security, game_room, minPrice, maxPrice, expMinPrice, expMaxPrice,
+	currency, country, province, district
+}) => {
 
 	let result = [];
 
@@ -58,13 +62,147 @@ const getProperties = async ({ propertyId, userId, title, description,
 		whereStatement.status = "Publicada";
 	}
 
+	if(propertyType)
+		whereStatement.propertyType = propertyType;
+
+	if (antiquity)
+		whereStatement.antiquity = antiquity;
+
+	if (mtsCovered)
+		whereStatement.mtsCovered = mtsCovered;
+
+	if (mtsUnconvered)
+		whereStatement.mtsUnconvered = mtsUnconvered;
+
+	if(position)
+		whereStatement.position = position;
+
+	if(orientation)
+		whereStatement.orientation = orientation;
+
+	if (numEnvironments !== undefined) {
+		whereStatement.numEnvironments = { 
+		[Op.gte]: numEnvironments 
+		};
+	}
+
+	if (numRooms !== undefined) {
+		whereStatement.numRooms = { 
+		[Op.gte]: numRooms 
+		};
+	}
+
+	if (numBathrooms !== undefined) {
+		whereStatement.numBathrooms = { 
+		[Op.gte]: numBathrooms 
+		};
+	}
+
+	if (numCars !== undefined) {
+		whereStatement.numCars = { 
+		[Op.gte]: numCars 
+		};
+	}
+
+	if (roofTop !== undefined)
+		whereStatement.roofTop = roofTop;
+
+	if (balcony !== undefined)
+		whereStatement.balcony = balcony;
+
+	if (vault !== undefined)
+		whereStatement.vault = vault;
+
+	if (sum !== undefined) 
+		whereStatement.sum = sum;
+	
+	if (laundry !== undefined) 
+		whereStatement.laundry = laundry;
+	
+	if (swimming_pool !== undefined) 
+		whereStatement.swimming_pool = swimming_pool;
+	
+	if (sport_field !== undefined) 
+		whereStatement.sport_field = sport_field;
+	
+	if (solarium !== undefined) 
+		whereStatement.solarium = solarium;
+	
+	if (gym !== undefined) 
+		whereStatement.gym = gym;
+	
+	if (sauna !== undefined) 
+		whereStatement.sauna = sauna;
+	
+	if (security !== undefined) 
+		whereStatement.security = security;
+	
+	if (game_room !== undefined) 
+		whereStatement.game_room = game_room;
+
+	let contractTypeWhereClause = {};
+	if (contractType) {
+		contractTypeWhereClause.contractType = contractType;
+	}
+
+	if (minPrice !== undefined) {
+		contractTypeWhereClause.price = { [Op.gte]: minPrice };
+	}
+
+	if (maxPrice !== undefined) {
+		if (contractTypeWhereClause.price) {
+			contractTypeWhereClause.price[Op.lte] = maxPrice;
+		} else {
+			contractTypeWhereClause.price = { [Op.lte]: maxPrice };
+		}
+	}
+
+	if (expMinPrice !== undefined) {
+		contractTypeWhereClause.expPrice = { [Op.gte]: expMinPrice };
+	}
+
+	if (expMaxPrice !== undefined) {
+		if (contractTypeWhereClause.expPrice) {
+			contractTypeWhereClause.expPrice[Op.lte] = expMaxPrice;
+		} else {
+			contractTypeWhereClause.expPrice = { [Op.lte]: expMaxPrice };
+		}
+	}
+
+	if (currency) {
+		contractTypeWhereClause.currency = currency;
+	}
+
+	let locationTypeWhereClause = {};
+	
+	if (contractType) {
+		locationTypeWhereClause.country = country;
+	}
+
+	if (province) {
+		locationTypeWhereClause.province = province;
+	}
+
+	if (district) {
+		locationTypeWhereClause.district = district;
+	}
+
 	var findStatement = {
 		where: whereStatement,
 		order: [orderStatement],
 		offset: skip,
 		limit: limit,
-		include: [ContractType, Location]
+		include: [{
+			model: ContractType,
+			where: Object.keys(contractTypeWhereClause).length ? contractTypeWhereClause : undefined,
+        	required: Object.keys(contractTypeWhereClause).length ? true : false
+		}, {
+			model: Location,
+			where: Object.keys(locationTypeWhereClause).length ? locationTypeWhereClause : undefined,
+        	required: Object.keys(locationTypeWhereClause).length ? true : false
+		}]
 	};
+
 
 	// if (!filterOwned) {
 	// 	findStatement.include = 'user';
