@@ -116,8 +116,9 @@ const addProperty = async (body) => {
 	var clone = JSON.parse(JSON.stringify(body));
 	clone.userId = body.id;
 	delete clone.id;
+	delete clone.location;
 
-	// TODO! usar servicio de google para generar latitude y longitude de location
+	// TODO! validar campos obligatorios ContractType (ej, Rent requiere de contractDays)
 	await Property.create(clone,
 		{
 			include: [ContractType],
@@ -146,6 +147,7 @@ const addProperty = async (body) => {
 					
 					clone.location.latitude = response.data.results[0].geometry.location.lat;
 					clone.location.longitude = response.data.results[0].geometry.location.lng;
+					clone.location.formattedAddress = response.data.results[0].geometry.location.formatted_address;
 
 					aux = await Location.findOrCreate({
 						where: {id: clone.location.id},
@@ -165,6 +167,7 @@ const addProperty = async (body) => {
 		});
 
 	await result.save();
+	await result.reload();
 	return result;
 };
 
@@ -186,6 +189,7 @@ const updateProperty = async (property, body) => {
 
 	// Location
 	// TODO! servicio para obtener latitude y longitude en base a la info de location
+	// TODO! do it here or handle with database hook to consume google maps
 	if (body.location) {
 		let location = await Location.findOrCreate({
 			where: body.location,

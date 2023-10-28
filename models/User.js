@@ -72,9 +72,9 @@ User.sync().then(async () => {
   let longitude = -58.3819187;
 
   let location = await Location.findOrCreate({
-    where: { id: "aaf30feed1000000001aaf" },
+    where: { id: "EiJMaW1hIDc1NiwgQzEwNzNBQVAgQ0FCQSwgQXJnZW50aW5hIjESLwoUChIJYVB33tfKvJUREA4VkZ6mLY4Q9AUqFAoSCTWwi1coy7yVEQ0Xh4dJGEds" },
     defaults: {
-      id: "aaf30feed1000000001aaf",
+      id: "EiJMaW1hIDc1NiwgQzEwNzNBQVAgQ0FCQSwgQXJnZW50aW5hIjESLwoUChIJYVB33tfKvJUREA4VkZ6mLY4Q9AUqFAoSCTWwi1coy7yVEQ0Xh4dJGEds",
       latitude: latitude,
       longitude: longitude,
       country: "Argentina",
@@ -82,6 +82,7 @@ User.sync().then(async () => {
       district: "Ciudad Autónoma de Buenos Aires",
       street: "Lima",
       streetNumber: 756,
+      formattedAddress: "Lima 756, C1073AAP CABA, Argentina",
       departament: "N/A"
     }
   });
@@ -137,7 +138,7 @@ User.sync().then(async () => {
           propertyType: PropertyTypeEnum.HOUSE,
           title: "Mocked Casa",
           description: "Casa en el centro de Banfield con cuatro ambientes y multiples ammenities.",
-          locationId: "aaf30feed1000000001aaf",
+          locationId: "EiJMaW1hIDc1NiwgQzEwNzNBQVAgQ0FCQSwgQXJnZW50aW5hIjESLwoUChIJYVB33tfKvJUREA4VkZ6mLY4Q9AUqFAoSCTWwi1coy7yVEQ0Xh4dJGEds",
           antiquity: 1,
           mtsCovered: 50,
           mtsHalfCovered: 50,

@@ -35,6 +35,9 @@ const Location = sq.define('location', {
   },
   longitude: {
     type: DataTypes.FLOAT,
+  },
+  formattedAddress: {
+    type: DataTypes.STRING,
   }
 },
 {
