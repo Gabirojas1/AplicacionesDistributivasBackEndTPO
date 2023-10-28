@@ -93,7 +93,7 @@ const updateProperty = async (req, res) => {
     // Tiene que existir con el propertyId y pertenecer al usuario loggeado.
     let properties = await PropertiesRepository.getProperties({
       propertyId: body.propertyId,
-      userId: body.id,
+      userId: body.id, // body.id siempre contiene el id del usuario loggeado
       filterOwned: true
     });
 

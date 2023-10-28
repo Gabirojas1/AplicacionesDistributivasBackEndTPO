@@ -317,21 +317,18 @@ const updateProperty = async (property, body) => {
 	// Actualizarla con la info del body.
 	// Exceptuando campos no editables
 	var clone = JSON.parse(JSON.stringify(body));
-	delete clone.propertyId;
+	delete clone.id;
 	delete clone.rating;
 	delete clone.status;
 	delete clone.contract_types;
-	delete clone.location
+	delete clone.location;
 
 	await property.update(clone);
 
 	// Location
 	if (body.location) {
-		
-		// Actualizarla con la info del body.
-		// Exceptuando campos no editables
-		var cloneLoc = JSON.parse(JSON.stringify(body.location));
 
+		var cloneLoc = JSON.parse(JSON.stringify(body.location));
 		// campos no editables
 		delete cloneLoc.id;
 		delete cloneLoc.latitude;
@@ -344,12 +341,12 @@ const updateProperty = async (property, body) => {
 		if (response && response.statusText == "OK") {
 
 			cloneLoc.id = response.data.results[0].place_id;
-
+			
 			cloneLoc.latitude = response.data.results[0].geometry.location.lat;
 			cloneLoc.longitude = response.data.results[0].geometry.location.lng;
 
 			aux = await Location.findOrCreate({
-				where: { id: cloneLoc.id },
+				where: {id: cloneLoc.id},
 				defaults: cloneLoc
 			});
 
@@ -405,7 +402,7 @@ const updateProperty = async (property, body) => {
 
 // Elimina propiedad existente
 const deleteProperty = async ({ propertyId }) => {
-
+ // TODO! implement
 };
 
 /**
