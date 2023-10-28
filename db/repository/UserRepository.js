@@ -55,9 +55,8 @@ const getUserByIdUsuario = async(uid) => {
 
 
 /**
- * Lookups for an account in the postgres database with the given mail. 
- * If not exist returns null
- * @returns account if exists else null
+ * Busca usuario por mail
+ * @returns user si existe, sino null
  */
 const getUserByMail = async(mail) => {
     let user = null; 
@@ -66,6 +65,30 @@ const getUserByMail = async(mail) => {
     }
 
     await User.findOne({
+        where: {
+            mail: mail
+        }
+    }).then(res => {
+        user = res;
+    }).catch((error) => {
+        console.error('Failed to retrieve data : ', error);
+    });
+
+    return user;
+};
+
+/**
+ * Busca usuario por mail
+ * Devuelve el modelo user, incluyendo el campo password para comparacion de hashes
+ * @returns user si existe, sino null
+ */
+const getUserByMailIncludePasswordField = async(mail) => {
+    let user = null; 
+    if (mail == undefined || mail.length < 1) {
+        return null
+    }
+
+    await User.scope('withPassword').findOne({
         where: {
             mail: mail
         }
@@ -139,6 +162,7 @@ module.exports = {
     signup,
     getUserByIdUsuario,
     getUserByMail,
+    getUserByMailIncludePasswordField,
     confirmSignup,
     genOTP,
     updatePassword,

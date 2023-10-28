@@ -1,12 +1,10 @@
 const { Router } = require("express");
 const { check } = require("express-validator");
-const { signup, confirmSignup  } = require("../controllers/users");
+const { signup, confirmSignup, getLoggedUser, getUser  } = require("../controllers/users");
 const { validateField } = require("../middlewares/fieldValidator");
 
-const decodeUserFromToken =
-  require("../middlewares/auth.js").decodeUserFromToken;
-
 const router = Router();
+router.use(require("../middlewares/response").jsonExtra);
 
 router.post(
     "/", [
@@ -32,8 +30,22 @@ router.get(
   confirmSignup
 );
 
+router.get(
+  "/id/:id", [
+      validateField,
+  ],
+  getUser
+);
+
 
 /*---------- Protected Routes ----------*/
-router.use(decodeUserFromToken);
+router.use(require("../middlewares/auth.js").decodeUserFromToken);
+
+router.get(
+  "/me", [
+      validateField,
+  ],
+  getLoggedUser
+);
 
 module.exports = router;

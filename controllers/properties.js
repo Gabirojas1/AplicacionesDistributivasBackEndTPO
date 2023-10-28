@@ -23,9 +23,9 @@ const getProperties = async (req, res) => {
 
     let properties = await PropertiesRepository.getProperties(body);
 
-    return res.status(200).json({ status: "ok", count: total.length, data: properties });
+    return res.status(200).jsonExtra({ status: "ok", count: total.length, data: properties });
   } catch (e) {
-    return res.status(400).json({ status: "err", message: e.message });
+    return res.status(400).jsonExtra({ status: "err", message: e.message });
   }
 };
 
@@ -48,14 +48,14 @@ const addProperty = async (req, res) => {
   try {
     let user = await UserRepository.getUserByIdUsuario(body.id);
     if (!user) {
-      return res.status(401).json({
+      return res.status(401).jsonExtra({
         status: "error",
         message: "No existe el usuario para dar de alta la propiedad",
       });
     }
 
     if (user.userType != constants.UserTypeEnum.INMOBILIARIA) {
-      return res.status(400).json({
+      return res.status(400).jsonExtra({
         status: "error",
         message: "Error: solo las inmobiliarias pueden agregar propiedades.",
       });
@@ -63,13 +63,13 @@ const addProperty = async (req, res) => {
 
     let property = await PropertiesRepository.addProperty(body);
     if (property) {
-      return res.status(200).json({
+      return res.status(200).jsonExtra({
         status: "ok",
         message: "property dada de alta exitosamente",
         data: property,
       });
     } else {
-      return res.status(500).json({
+      return res.status(500).jsonExtra({
         status: "error",
         message: "Error. No se pudo agregar la propiedad.",
       });
@@ -78,7 +78,7 @@ const addProperty = async (req, res) => {
   } catch (e) {
     return res
       .status(e.statusCode ? e.statusCode : 500)
-      .json({ status: e.name, message: e.message });
+      .jsonExtra({ status: e.name, message: e.message });
   }
 };
 
@@ -100,7 +100,7 @@ const updateProperty = async (req, res) => {
     // El usuario no es dueño de la propiedad o 
     // La propiedad no existe
     if (properties.length < 1) {
-      return res.status(401).json({
+      return res.status(401).jsonExtra({
         status: "error",
         message: "No autorizado. La propiedad no existe o no te pertenece.",
       });
@@ -108,7 +108,7 @@ const updateProperty = async (req, res) => {
 
     let property = properties[0];
     if (property.userId != body.id) {
-      return res.status(401).json({
+      return res.status(401).jsonExtra({
         status: "error",
         message: "No autorizado. La propiedad no existe o no te pertenece.",
       });
@@ -117,7 +117,7 @@ const updateProperty = async (req, res) => {
     // update base property
     let result = await PropertiesRepository.updateProperty(property, body);
     if (!result) {
-      return res.status(500).json({
+      return res.status(500).jsonExtra({
         status: "error",
         message: "unexpected error at updateProperty"
       });
@@ -129,7 +129,7 @@ const updateProperty = async (req, res) => {
       filterOwned: true
     });
 
-    return res.status(200).json({
+    return res.status(200).jsonExtra({
       status: "ok",
       message: "propiedad actualizada",
       data: finalResult[0],
@@ -137,7 +137,7 @@ const updateProperty = async (req, res) => {
   } catch (e) {
     return res
       .status(e.statusCode ? e.statusCode : 500)
-      .json({ status: e.name, message: e.message });
+      .jsonExtra({ status: e.name, message: e.message });
   }
 };
 
@@ -152,7 +152,7 @@ const deleteProperty = async (req, res) => {
     // Validar que la propiedad existe
     let properties = await PropertiesRepository.getProperties({ propertyId: body.propertyId });
     if (properties.length < 1) {
-      return res.status(404).json({
+      return res.status(404).jsonExtra({
         status: "error",
         message: "la propiedad no existe",
       });
@@ -160,19 +160,19 @@ const deleteProperty = async (req, res) => {
 
     let result = await PropertiesRepository.deleteProperty(body);
     if (!result) {
-      return res.status(200).json({
+      return res.status(200).jsonExtra({
         status: "error",
       });
     }
 
-    return res.status(200).json({
+    return res.status(200).jsonExtra({
       status: "ok",
       message: "propiedad dada de baja, no se mostrara en resultados de busqueda",
     });
   } catch (e) {
     return res
       .status(e.statusCode)
-      .json({ status: e.name, message: e.message });
+      .jsonExtra({ status: e.name, message: e.message });
   }
 };
 

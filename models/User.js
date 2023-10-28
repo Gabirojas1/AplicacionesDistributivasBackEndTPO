@@ -59,6 +59,14 @@ const User = sq.define('user', {
 },
   {
     tableName: 'users',
+    defaultScope: {
+      attributes: { exclude: ['password'] },
+    },
+    scopes: {
+      withPassword: {
+        attributes: { include: ['password'] },
+      }
+    }
   });
 
 User.sync().then(async () => {

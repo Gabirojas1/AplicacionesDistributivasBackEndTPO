@@ -24,10 +24,10 @@ const login = async (req, res = response) => {
   const { mail, password } = req.body;
 
   try {
-    const usuario = await UserRepository.getUserByMail(mail);
+    const usuario = await UserRepository.getUserByMailIncludePasswordField(mail);
     
     if (!usuario) {
-      return res.status(400).json({
+      return res.status(400).jsonExtra({
         ok: false,
         message: "Credenciales invalidas.",
       });
@@ -35,7 +35,7 @@ const login = async (req, res = response) => {
 
     const validPassword = bcrypt.compareSync(password, usuario.password);
     if (!validPassword) {
-      return res.status(400).json({
+      return res.status(400).jsonExtra({
         ok: false,
         message: "Credenciales invalidas.",
       });
@@ -44,7 +44,7 @@ const login = async (req, res = response) => {
     
    // if (usuario.status != constants.UserStateEnum.CONFIRMED) {
       // TODO! reenvio de email + logica cada 30 minutos.
-   //   return res.status(400).json({
+   //   return res.status(400).jsonExtra({
     //    ok: false,
     //    message: "Tu usuario está en proceso de confirmación, revisa tu email. Lo reenviamos. ",
    //   });
@@ -52,12 +52,12 @@ const login = async (req, res = response) => {
 
     // Generate JWT
     const token = await generateJWT(usuario.id);
-    return res.json({
+    return res.jsonExtra({
       ok: true,
       token,
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(500).jsonExtra({
       ok: false,
       message: "Unexpected error",
     });
@@ -65,11 +65,9 @@ const login = async (req, res = response) => {
 };
 
 const renew = async (req, res = response) => {
-  const { uid } = req;
-
+  const uid = req.body.id;
   const token = await generateJWT(uid);
-
-  return res.json({
+  return res.jsonExtra({
     ok: true,
     token,
   });
@@ -104,7 +102,7 @@ const sendOTP = async (req, res) => {
         if (result.accepted.length > 0) {
           return res
             .status(200)
-            .json({
+            .jsonExtra({
               result: "ok",
               message: "Revisa tu correo para completar el registro",
             });
@@ -112,10 +110,10 @@ const sendOTP = async (req, res) => {
 
         return res
           .status(500)
-          .json({ result: "error", message: result.response });
+          .jsonExtra({ result: "error", message: result.response });
       } catch (error) {
         console.log(error);
-        return json.send(error);
+        return res.send(error);
       }
       // end new code
       res.send({ sended: true, message: "Se ha enviado correctamente" });
@@ -152,7 +150,7 @@ const validateOTP = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    let foundUser = await UserRepository.getUserByMail(req.body.email);
+    let foundUser = await UserRepository.getUserByMailIncludePasswordField(req.body.email);
     console.log(foundUser);
     if (foundUser) {
       let hashPassword = await bcrypt.hash(req.body.password, 10);

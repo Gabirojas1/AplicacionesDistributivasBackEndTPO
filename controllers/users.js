@@ -21,12 +21,12 @@ oAuth2Client.setCredentials({
 
 const signup = async (req, res = response) => {
   try {
-    const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } =  req.body;
+    const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } = req.body;
 
     if (!constants.RoleEnum.includes(userType)) {
       return res
         .status(400)
-        .json({
+        .jsonExtra({
           status: "error",
           message: `'${userType} no es un tipo de usuario valido'`,
         });
@@ -35,10 +35,10 @@ const signup = async (req, res = response) => {
     // buscamos por mail
     let user = await UserRepository.getUserByMail(mail);
     if (user != null) {
-        return res.status(400).json({
-            ok: false,
-            message: "El usuario ya existe",
-        });
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "El usuario ya existe",
+      });
     }
 
     // TODO validate repeatPassword
@@ -76,19 +76,19 @@ const signup = async (req, res = response) => {
       if (result.accepted.length > 0) {
         return res
           .status(200)
-          .json({
+          .jsonExtra({
             result: "ok",
             message: "Revisa tu correo para completar el registro",
           });
       }
 
-      return res.status(500).json({ status: "error", message: result.response });
+      return res.status(500).jsonExtra({ status: "error", message: result.response });
     } catch (error) {
       console.log(error);
       return json.send(error);
     }
   } catch (error) {
-    return res.status(500).json({
+    return res.status(500).jsonExtra({
       ok: false,
       message: "Unexpected error",
       stack: error.stack,
@@ -102,14 +102,14 @@ const confirmSignup = async (req, res = response) => {
 
     let decoded = await verifyJWT(token);
     if (decoded.err) {
-      return res.status(401).json({ err: "error decrypt token" });
+      return res.status(401).jsonExtra({ err: "error decrypt token" });
     }
 
     UserRepository.getUserByIdUsuario(decoded.id).then(async (user) => {
       if (!user) {
         /* return res
                     .status(401)
-                    .json({ err: "no existe el usuario" }); */
+                    .jsonExtra({ err: "no existe el usuario" }); */
         return res.sendFile(
           path.resolve("public/signup-complete-fail-02.html")
         );
@@ -126,15 +126,74 @@ const confirmSignup = async (req, res = response) => {
       return res.sendFile(path.resolve("public/signup-complete-success.html"));
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(500).jsonExtra({
       ok: false,
       message: "Unexpected error",
     });
   }
 };
 
+// Metodo especifico para obtener cualquier usuario con su Id
+const getUser = async (req, res) => {
+  try {
+
+    const userId = req.params.id;
+    let user = await UserRepository.getUserByIdUsuario(userId);
+    if (user == null) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se pudo encontrar el usuario.",
+      });
+    }
+
+    return res
+      .status(200)
+      .jsonExtra({
+        result: "ok",
+        data: user
+      });
+
+  } catch (error) {
+    return res.status(500).jsonExtra({
+      ok: false,
+      message: "Unexpected error",
+      stack: error.stack,
+    });
+  }
+};
+
+// Metodo especifico para obtener el usuario loggeado
+const getLoggedUser = async (req, res) => {
+  try {
+
+    const userId = req.body.id;
+    let user = await UserRepository.getUserByIdUsuario(userId);
+    if (user == null) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
+      });
+    }
+
+    return res
+      .status(200)
+      .jsonExtra({
+        result: "ok",
+        data: user
+      });
+
+  } catch (error) {
+    return res.status(500).jsonExtra({
+      ok: false,
+      message: "Unexpected error",
+      stack: error.stack,
+    });
+  }
+};
 
 module.exports = {
   signup,
-  confirmSignup
+  confirmSignup,
+  getLoggedUser,
+  getUser
 };
