@@ -52,6 +52,9 @@ const User = sq.define('user', {
     type: DataTypes.STRING,
     allowNull: false,
     defaultValue: "Initial"
+  },
+  otp: {
+    type: DataTypes.STRING
   }
 },
   {

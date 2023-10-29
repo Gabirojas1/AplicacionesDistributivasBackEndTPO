@@ -1,5 +1,4 @@
-var nodemailer = require("nodemailer");
-const { google } = require("googleapis");
+
 const { response } = require("express");
 const bcrypt = require("bcrypt");
 const { generateJWT, verifyJWT } = require("../helpers/jwt");
@@ -9,15 +8,7 @@ var constants = require("../common/constants");
 
 const path = require("path");
 
-const oAuth2Client = new google.auth.OAuth2(
-  process.env.GMAIL_API_KEY,
-  process.env.GMAIL_API_SECRET,
-  process.env.GMAIL_API_REDIRECT_URI
-);
-
-oAuth2Client.setCredentials({
-  refresh_token: process.env.GMAIL_API_REFRESH_TOKEN,
-});
+const mailHelper = require("../helpers/mail");
 
 var cloudinary = require("cloudinary").v2;
 cloudinary.config({ 
@@ -29,7 +20,6 @@ cloudinary.config({
 const signup = async (req, res = response) => {
   try {
     const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } = req.body;
-    
 
     if (!constants.RoleEnum.includes(userType)) {
       return res
@@ -50,12 +40,12 @@ const signup = async (req, res = response) => {
     }
 
     // password y repeatPassword Validation
-    if(!password || !repeatPassword
-       || password != repeatPassword) {
-        return res.status(400).jsonExtra({
-          ok: false,
-          message: "Las contraseñas no coinciden.",
-        });
+    if (!password || !repeatPassword
+      || password != repeatPassword) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "Las contraseñas no coinciden.",
+      });
     }
 
     // cloudinary (photo upload
@@ -63,17 +53,17 @@ const signup = async (req, res = response) => {
     if (photo) {
 
       await cloudinary.uploader.upload(photo, {
-          format: 'png', width: 200, height: 200, tags: [`${firstName}`, `${lastName}`, "myhome", "uade", "distribuidas", "app"]
-        }).then((image) => {
-          photo = image.url;
-        }).catch((err) => {
-          console.log(err);
-          return res.status(500).jsonExtra({
-            ok: false,
-            message: "Error inesperado al subir imagen a cloudinary.",
-            error: err
-          });
+        format: 'png', width: 200, height: 200, tags: [`${firstName}`, `${lastName}`, "myhome", "uade", "distribuidas", "app"]
+      }).then((image) => {
+        photo = image.url;
+      }).catch((err) => {
+        console.log(err);
+        return res.status(500).jsonExtra({
+          ok: false,
+          message: "Error inesperado al subir imagen a cloudinary.",
+          error: err
         });
+      });
     }
 
     let hash = await bcrypt.hash(password, constants.SALT_ROUNDS);
@@ -81,45 +71,30 @@ const signup = async (req, res = response) => {
       firstName, lastName, userType, hash, mail, contactMail, fantasyName, phone, cuit, photo
     );
 
-    const accessToken = await oAuth2Client.getAccessToken();
-    const transport = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        ...constants.auth,
-        accessToken: accessToken,
-      },
-    });
-
     // TODO axel: hacer que sea un token de un solo uso -- cargar en la db, agregar marca de registro completo, volar de la db.
     const token = await generateJWT({ id: user.id });
-
     const mailOptions = {
       ...constants.mailoptions,
       from: "myHome",
       to: req.body.mail,
       text:
-        `Hola! Te escribimos de myHome. \n
-        has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
+        `Hola! Te escribimos de myHome! \n
+        Has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
         Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token, // TODO! cloud: cambiar a link publico para demo
     };
 
-    try {
-      const result = await transport.sendMail(mailOptions);
-
-      if (result.accepted.length > 0) {
-        return res
-          .status(200)
-          .jsonExtra({
-            result: "ok",
-            message: "Revisa tu correo para completar el registro",
-          });
-      }
-
-      return res.status(500).jsonExtra({ status: "error", message: result.response });
-    } catch (error) {
-      console.log(error);
-      return json.send(error);
+    const result = await mailHelper.sendMail(mailOptions);
+    if (result.accepted.length > 0) {
+      return res
+        .status(200)
+        .jsonExtra({
+          result: "ok",
+          message: "Revisa tu correo para completar el registro",
+        });
     }
+
+    return res.status(500).jsonExtra({ status: "error", message: result.response });
+
   } catch (error) {
     return res.status(500).jsonExtra({
       ok: false,

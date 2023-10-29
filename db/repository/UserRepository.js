@@ -149,20 +149,10 @@ const updateUser = async (user, body) => {
 };
 
 
-const genOTP = async(uid, otp) => {
-    try {
-
-        var query = `UPDATE users SET OTP = '${otp}' WHERE id = '${uid}' `;
-        const records = await pg_pool.query(query);
-        if (records.rowCount >= 1) {
-
-            return true
-        } else {
-            return false;
-        }
-    } catch (error) {
-        return false;
-    }
+const genOTP = async(user, otp) => {
+    user.otp = otp;
+    user.save();
+    user.reload();
 };
 
 const updatePassword = async(uid, password) => {
