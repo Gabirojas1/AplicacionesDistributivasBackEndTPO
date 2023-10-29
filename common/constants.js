@@ -23,14 +23,36 @@ const PropertyStateEnum = {
 };
 
 const PropertyTypeEnum = {
-  HOUSE: 'House',
-  DEPARTMENT: 'Department'
+  HOUSE: 'Casa',
+  DEPARTMENT: 'Departamento',
+  PH: 'PH',
+  PLOT: 'Terreno',
+  STOREFRONT: 'Local Comercial'
 };
 
 const ContractTypeEnum = {
-  RENT: 'Rent',
-  SALE: 'Sale',
+  RENT: 'Alquiler',
+  SALE: 'Venta',
+  SEASON: 'Temporada',
 };
+
+const OrientationEnum = {
+  N: 'N',
+  S: 'S',
+  E: 'E',
+  O: 'O',
+  SE: 'SE',
+  SO: 'SO',
+  NO: 'NO',
+  NE: 'NE'
+};
+
+const PositionEnum = {
+  FRONT: 'Frente',
+  REAR: 'Contrafrente',
+  INTERNAL: 'Interno',
+  SIDE: 'Lateral'
+}
 
 const ContractTypeStateEnum = {
   PUBLISHED: "Published",
@@ -38,12 +60,12 @@ const ContractTypeStateEnum = {
   RESERVED: "Reserved",
   COMPLETED: "Completed",
   FINALIZED: "Finalized"
-}
+};
 
 const CurrencyTypeEnum = {
   ARS: "AR$",
   USD: "US$"
-}
+};
 
 
 const ContenidoEnum = ["foto", "video", "audio"];
@@ -64,6 +86,9 @@ const mailoptions = {
   subject: "Registro en progreso",
 };
 
+function getKeyByValue(object, value) {
+  return Object.keys(object).find(key => object[key] === value);
+}
 
 module.exports = {
   auth,
@@ -77,7 +102,10 @@ module.exports = {
   ContractTypeEnum,
   ContractTypeStateEnum,
   CurrencyTypeEnum,
+  OrientationEnum,
+  PositionEnum,
   SALT_ROUNDS,
   defaultProfileGuestImage: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894991/dohnmb6blyd2ei1bjha7.png",
   defaultProfileStudentImage: "https://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894850/rjhj017czkwubzqiw9uu.png",
+  getKeyByValue
 };

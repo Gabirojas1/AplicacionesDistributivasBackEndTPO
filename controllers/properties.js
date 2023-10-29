@@ -2,6 +2,7 @@ var constants = require("../common/constants");
 
 const UserRepository = require("../db/repository/UserRepository");
 const PropertiesRepository = require("../db/repository/PropertiesRepository.js");
+const moment = require('moment');
 const Location = require("../models/Location");
 const ContractType = require("../models/ContractType");
 
@@ -10,22 +11,22 @@ const ContractType = require("../models/ContractType");
 // y el paginado que se desea.
 const getProperties = async (req, res) => {
   try {
-    var skip = req.query.skip ? req.query.skip : 0;
-    var limit = req.query.limit ? req.query.limit : 10;
+    const params = req.query
 
-    const body = req.body;
-    body.filterOwned = req.filterOwned ? true : false;
+    params.skip = params.skip ? parseInt(params.skip, 10) : 0
+    params.limit = params.limit ? parseInt(params.limit, 10) : 10
+    params.filterOwned = params.filterOwned ? true : false
 
-    let total = await PropertiesRepository.getProperties(body);
+    let result = await PropertiesRepository.getProperties(params)
 
-    body.skip = skip;
-    body.limit = limit;
-
-    let properties = await PropertiesRepository.getProperties(body);
-
-    return res.status(200).json({ status: "ok", count: total.length, data: properties });
+    return res.status(200).json(result)
   } catch (e) {
-    return res.status(400).json({ status: "err", message: e.message });
+    return res.status(e.status).json({ 
+      "code": e.status,
+      "msg": e.message,
+      "timestamp": moment().unix(),
+      "data": [] 
+    })
   }
 };
 

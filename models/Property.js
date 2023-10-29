@@ -2,7 +2,7 @@ const { Sequelize, DataTypes } = require('sequelize');
 const { sq } = require('../db/database');
 const { PropertyState } = require('./State/PropertyState');
 
-const {PropertyTypeEnum, PropertyStateEnum} = require('../common/constants');
+const {PropertyTypeEnum, PropertyStateEnum, PositionEnum, OrientationEnum} = require('../common/constants');
 const ContractType = require('./ContractType');
 
 const Property = sq.define('property', {
@@ -44,10 +44,14 @@ const Property = sq.define('property', {
     type: DataTypes.INTEGER,
   },
   position: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM,
+    values: Object.values(PositionEnum),
+    allowNull: true
   },
   orientation: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM,
+    values: Object.values(OrientationEnum),
+    allowNull: true
   },
   numEnvironments: {
     type: DataTypes.INTEGER,
