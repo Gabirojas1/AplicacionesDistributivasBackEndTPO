@@ -12,6 +12,7 @@ const UserTypeEnum = {
 const UserStateEnum = {
   INITIAL: 'Initial',
   CONFIRMED: 'Confirmed',
+  DEACTIVATED: 'Deactivated'
 };
 
 const PropertyStateEnum = {

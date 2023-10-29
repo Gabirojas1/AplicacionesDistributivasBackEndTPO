@@ -45,9 +45,6 @@ const User = sq.define('user', {
   phone: {
     type: DataTypes.STRING,
   },
-  address: {
-    type: DataTypes.STRING,
-  },
   photo: {
     type: DataTypes.STRING,
   },
@@ -110,8 +107,7 @@ User.sync().then(async () => {
       mail: userMail2,
       password: "$2b$06$8wf1xpWSuUiqA5O5rCj9suJAyIwgoOFHuNTw583p4XTFTOp1wbI8G", //123456
       phone: "+5491187654321",
-      //TODO! cloudinary
-      photo: "photourl.jpg"
+      photo: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1698538460/ai6lj9uimo6anrhuxfkq.png"
     }
   })
 
@@ -131,8 +127,7 @@ User.sync().then(async () => {
       fantasyName: "RE/MAX Argentina",
       cuit: "99-12345678-88",
       phone: "+5491187654321",
-      //TODO! cloudinary
-      photo: "photourl.jpg"
+      photo: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1698538339/apakk8jrgaomi2vt41cg.png"
     }
   })
     .then(async res => {

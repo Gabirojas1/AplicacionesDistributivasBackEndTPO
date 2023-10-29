@@ -4,7 +4,7 @@ const User = require('../../models/User.js');
  * Creates User with the given data
  * @returns account created
  */
-const signup = async(firstName, lastName, userType, password, mail, contactMail, fantasyName, phone, cuit) => {
+const signup = async(firstName, lastName, userType, password, mail, contactMail, fantasyName, phone, cuit, photo) => {
     let user = null; 
     
     await User.create({
@@ -16,8 +16,9 @@ const signup = async(firstName, lastName, userType, password, mail, contactMail,
         contactMail: contactMail, 
         fantasyName: fantasyName,
         phone: phone, 
-        cuit: cuit}
-    ).then(res => {
+        cuit: cuit,
+        photo: photo
+    }).then(res => {
         user = res;
     }).catch((error) => {
         console.error('Failed to insert data : ', error);
@@ -126,6 +127,28 @@ const confirmSignup = async(uid) => {
     return user;
 };
 
+// actualiza usuario existente
+const updateUser = async (user, body) => {
+
+	// Reemplazar el user con la info del body
+	// Exceptuando campos no editables
+	var clone = JSON.parse(JSON.stringify(body));
+	delete clone.id;
+    delete clone.userId;
+    delete clone.userType;
+    delete clone.repeatPassword;
+    delete clone.status;
+    delete clone.createdAt;
+    delete clone.updatedAt;
+
+    // TODO! agregar associations 
+	await user.update(clone);
+	await user.save();
+    await user.reload();
+	return user;
+};
+
+
 const genOTP = async(uid, otp) => {
     try {
 
@@ -164,6 +187,7 @@ module.exports = {
     getUserByMail,
     getUserByMailIncludePasswordField,
     confirmSignup,
+    updateUser,
     genOTP,
     updatePassword,
 };

@@ -19,9 +19,17 @@ oAuth2Client.setCredentials({
   refresh_token: process.env.GMAIL_API_REFRESH_TOKEN,
 });
 
+var cloudinary = require("cloudinary").v2;
+cloudinary.config({ 
+  cloud_name: process.env.CLOUDINARY_USER, 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_SECRET, 
+});
+
 const signup = async (req, res = response) => {
   try {
     const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } = req.body;
+    
 
     if (!constants.RoleEnum.includes(userType)) {
       return res
@@ -41,11 +49,36 @@ const signup = async (req, res = response) => {
       });
     }
 
-    // TODO validate repeatPassword
+    // password y repeatPassword Validation
+    if(!password || !repeatPassword
+       || password != repeatPassword) {
+        return res.status(400).jsonExtra({
+          ok: false,
+          message: "Las contraseñas no coinciden.",
+        });
+    }
+
+    // cloudinary (photo upload
+    let photo = req.files["photo"].path;
+    if (photo) {
+
+      await cloudinary.uploader.upload(photo, {
+          format: 'png', width: 200, height: 200, tags: [`${firstName}`, `${lastName}`, "myhome", "uade", "distribuidas", "app"]
+        }).then((image) => {
+          photo = image.url;
+        }).catch((err) => {
+          console.log(err);
+          return res.status(500).jsonExtra({
+            ok: false,
+            message: "Error inesperado al subir imagen a cloudinary.",
+            error: err
+          });
+        });
+    }
 
     let hash = await bcrypt.hash(password, constants.SALT_ROUNDS);
     user = await UserRepository.signup(
-      firstName, lastName, userType, hash, mail, contactMail, fantasyName, phone, cuit
+      firstName, lastName, userType, hash, mail, contactMail, fantasyName, phone, cuit, photo
     );
 
     const accessToken = await oAuth2Client.getAccessToken();
@@ -67,7 +100,7 @@ const signup = async (req, res = response) => {
       text:
         `Hola! Te escribimos de myHome. \n
         has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
-        Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token,
+        Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token, // TODO! cloud: cambiar a link publico para demo
     };
 
     try {
@@ -191,9 +224,84 @@ const getLoggedUser = async (req, res) => {
   }
 };
 
+// Actualiza usuario existente
+const updateUser = async (req, res) => {
+  const body = req.body;
+
+  try {
+
+    // Obtener el usuario loggeado
+    let user = await UserRepository.getUserByIdUsuario(body.id);
+    if (!user) {
+      return res.status(401).jsonExtra({
+        status: "error",
+        message: "No autorizado. Usuario no existe, no esta logeado o sesion expirada",
+      });
+    }
+
+    // validar existencia del mail a insertar
+    if (body.mail) {
+
+      // si existe ya un usuario con ese mail y no es el que se intenta actualizar
+      let aux = await UserRepository.getUserByMail(body.mail);
+      if (aux && aux.id != user.id) {
+        return res.status(400).jsonExtra({
+          status: "error",
+          message: "El mail indicado ya se encuentra en uso."
+        });
+      }
+    }
+
+     // cloudinary (photo upload)
+     let photo = req.files ? req.files["photo"] : undefined;
+     if (photo) {
+ 
+       await cloudinary.uploader.upload(photo.path, {
+           format: 'png', width: 200, height: 200, tags: [`${body.firstName}`, `${body.lastName}`, "myhome", "uade", "distribuidas", "app"]
+         }).then((image) => {
+           body.photo = image.url;
+         }).catch((err) => {
+           console.log(err);
+           return res.status(500).jsonExtra({
+             ok: false,
+             message: "Error inesperado al subir imagen a cloudinary.",
+             error: err
+           });
+         });
+     }
+
+    // password hash replacement
+    if (body.password) {
+      let hash = await bcrypt.hash(body.password, constants.SALT_ROUNDS);
+      body.password = hash;
+    }
+
+    // TODO! agregar confirmacion por mail antes de insertar nuevos mail y password confirmUpdateUser method.
+    // update base user
+    let result = await UserRepository.updateUser(user, body);
+    if (!result) {
+      return res.status(500).jsonExtra({
+        status: "error",
+        message: "unexpected error at updateUser"
+      });
+    }
+
+    return res.status(200).jsonExtra({
+      status: "ok",
+      message: "usuario actualizado",
+      data: result,
+    });
+  } catch (e) {
+    return res
+      .status(e.statusCode ? e.statusCode : 500)
+      .jsonExtra({ status: e.name, message: e.message });
+  }
+};
+
 module.exports = {
   signup,
   confirmSignup,
   getLoggedUser,
-  getUser
+  getUser,
+  updateUser
 };
