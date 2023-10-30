@@ -1,5 +1,4 @@
-var nodemailer = require("nodemailer");
-const { google } = require("googleapis");
+
 const { response } = require("express");
 const bcrypt = require("bcrypt");
 const { generateJWT, verifyJWT } = require("../helpers/jwt");
@@ -9,24 +8,23 @@ var constants = require("../common/constants");
 
 const path = require("path");
 
-const oAuth2Client = new google.auth.OAuth2(
-  process.env.GMAIL_API_KEY,
-  process.env.GMAIL_API_SECRET,
-  process.env.GMAIL_API_REDIRECT_URI
-);
+const mailHelper = require("../helpers/mail");
 
-oAuth2Client.setCredentials({
-  refresh_token: process.env.GMAIL_API_REFRESH_TOKEN,
+var cloudinary = require("cloudinary").v2;
+cloudinary.config({ 
+  cloud_name: process.env.CLOUDINARY_USER, 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_SECRET, 
 });
 
 const signup = async (req, res = response) => {
   try {
-    const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } =  req.body;
+    const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } = req.body;
 
     if (!constants.RoleEnum.includes(userType)) {
       return res
         .status(400)
-        .json({
+        .jsonExtra({
           status: "error",
           message: `'${userType} no es un tipo de usuario valido'`,
         });
@@ -35,60 +33,70 @@ const signup = async (req, res = response) => {
     // buscamos por mail
     let user = await UserRepository.getUserByMail(mail);
     if (user != null) {
-        return res.status(400).json({
-            ok: false,
-            message: "El usuario ya existe",
-        });
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "El usuario ya existe",
+      });
     }
 
-    // TODO validate repeatPassword
+    // password y repeatPassword Validation
+    if (!password || !repeatPassword
+      || password != repeatPassword) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "Las contraseñas no coinciden.",
+      });
+    }
+
+    // cloudinary (photo upload
+    let photo = req.files["photo"].path;
+    if (photo) {
+
+      await cloudinary.uploader.upload(photo, {
+        format: 'png', width: 200, height: 200, tags: [`${firstName}`, `${lastName}`, "myhome", "uade", "distribuidas", "app"]
+      }).then((image) => {
+        photo = image.url;
+      }).catch((err) => {
+        console.log(err);
+        return res.status(500).jsonExtra({
+          ok: false,
+          message: "Error inesperado al subir imagen a cloudinary.",
+          error: err
+        });
+      });
+    }
 
     let hash = await bcrypt.hash(password, constants.SALT_ROUNDS);
     user = await UserRepository.signup(
-      firstName, lastName, userType, hash, mail, contactMail, fantasyName, phone, cuit
+      firstName, lastName, userType, hash, mail, contactMail, fantasyName, phone, cuit, photo
     );
-
-    const accessToken = await oAuth2Client.getAccessToken();
-    const transport = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        ...constants.auth,
-        accessToken: accessToken,
-      },
-    });
 
     // TODO axel: hacer que sea un token de un solo uso -- cargar en la db, agregar marca de registro completo, volar de la db.
     const token = await generateJWT({ id: user.id });
-
     const mailOptions = {
       ...constants.mailoptions,
       from: "myHome",
       to: req.body.mail,
       text:
-        `Hola! Te escribimos de myHome. \n
-        has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
-        Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token,
+        `Hola! Te escribimos de myHome! \n
+        Has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
+        Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token, // TODO! cloud: cambiar a link publico para demo
     };
 
-    try {
-      const result = await transport.sendMail(mailOptions);
-
-      if (result.accepted.length > 0) {
-        return res
-          .status(200)
-          .json({
-            result: "ok",
-            message: "Revisa tu correo para completar el registro",
-          });
-      }
-
-      return res.status(500).json({ status: "error", message: result.response });
-    } catch (error) {
-      console.log(error);
-      return json.send(error);
+    const result = await mailHelper.sendMail(mailOptions);
+    if (result.accepted.length > 0) {
+      return res
+        .status(200)
+        .jsonExtra({
+          result: "ok",
+          message: "Revisa tu correo para completar el registro",
+        });
     }
+
+    return res.status(500).jsonExtra({ status: "error", message: result.response });
+
   } catch (error) {
-    return res.status(500).json({
+    return res.status(500).jsonExtra({
       ok: false,
       message: "Unexpected error",
       stack: error.stack,
@@ -102,14 +110,14 @@ const confirmSignup = async (req, res = response) => {
 
     let decoded = await verifyJWT(token);
     if (decoded.err) {
-      return res.status(401).json({ err: "error decrypt token" });
+      return res.status(401).jsonExtra({ err: "error decrypt token" });
     }
 
     UserRepository.getUserByIdUsuario(decoded.id).then(async (user) => {
       if (!user) {
         /* return res
                     .status(401)
-                    .json({ err: "no existe el usuario" }); */
+                    .jsonExtra({ err: "no existe el usuario" }); */
         return res.sendFile(
           path.resolve("public/signup-complete-fail-02.html")
         );
@@ -126,15 +134,149 @@ const confirmSignup = async (req, res = response) => {
       return res.sendFile(path.resolve("public/signup-complete-success.html"));
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(500).jsonExtra({
       ok: false,
       message: "Unexpected error",
     });
   }
 };
 
+// Metodo especifico para obtener cualquier usuario con su Id
+const getUser = async (req, res) => {
+  try {
+
+    const userId = req.params.id;
+    let user = await UserRepository.getUserByIdUsuario(userId);
+    if (user == null) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se pudo encontrar el usuario.",
+      });
+    }
+
+    return res
+      .status(200)
+      .jsonExtra({
+        result: "ok",
+        data: user
+      });
+
+  } catch (error) {
+    return res.status(500).jsonExtra({
+      ok: false,
+      message: "Unexpected error",
+      stack: error.stack,
+    });
+  }
+};
+
+// Metodo especifico para obtener el usuario loggeado
+const getLoggedUser = async (req, res) => {
+  try {
+
+    const userId = req.body.id;
+    let user = await UserRepository.getUserByIdUsuario(userId);
+    if (user == null) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
+      });
+    }
+
+    return res
+      .status(200)
+      .jsonExtra({
+        result: "ok",
+        data: user
+      });
+
+  } catch (error) {
+    return res.status(500).jsonExtra({
+      ok: false,
+      message: "Unexpected error",
+      stack: error.stack,
+    });
+  }
+};
+
+// Actualiza usuario existente
+const updateUser = async (req, res) => {
+  const body = req.body;
+
+  try {
+
+    // Obtener el usuario loggeado
+    let user = await UserRepository.getUserByIdUsuario(body.id);
+    if (!user) {
+      return res.status(401).jsonExtra({
+        status: "error",
+        message: "No autorizado. Usuario no existe, no esta logeado o sesion expirada",
+      });
+    }
+
+    // validar existencia del mail a insertar
+    if (body.mail) {
+
+      // si existe ya un usuario con ese mail y no es el que se intenta actualizar
+      let aux = await UserRepository.getUserByMail(body.mail);
+      if (aux && aux.id != user.id) {
+        return res.status(400).jsonExtra({
+          status: "error",
+          message: "El mail indicado ya se encuentra en uso."
+        });
+      }
+    }
+
+     // cloudinary (photo upload)
+     let photo = req.files ? req.files["photo"] : undefined;
+     if (photo) {
+ 
+       await cloudinary.uploader.upload(photo.path, {
+           format: 'png', width: 200, height: 200, tags: [`${body.firstName}`, `${body.lastName}`, "myhome", "uade", "distribuidas", "app"]
+         }).then((image) => {
+           body.photo = image.url;
+         }).catch((err) => {
+           console.log(err);
+           return res.status(500).jsonExtra({
+             ok: false,
+             message: "Error inesperado al subir imagen a cloudinary.",
+             error: err
+           });
+         });
+     }
+
+    // password hash replacement
+    if (body.password) {
+      let hash = await bcrypt.hash(body.password, constants.SALT_ROUNDS);
+      body.password = hash;
+    }
+
+    // TODO! agregar confirmacion por mail antes de insertar nuevos mail y password confirmUpdateUser method.
+    // update base user
+    let result = await UserRepository.updateUser(user, body);
+    if (!result) {
+      return res.status(500).jsonExtra({
+        status: "error",
+        message: "unexpected error at updateUser"
+      });
+    }
+
+    return res.status(200).jsonExtra({
+      status: "ok",
+      message: "usuario actualizado",
+      data: result,
+    });
+  } catch (e) {
+    return res
+      .status(e.statusCode ? e.statusCode : 500)
+      .jsonExtra({ status: e.name, message: e.message });
+  }
+};
 
 module.exports = {
   signup,
-  confirmSignup
+  confirmSignup,
+  getLoggedUser,
+  getUser,
+  updateUser
 };

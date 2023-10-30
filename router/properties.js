@@ -1,11 +1,11 @@
 const { check } = require("express-validator");
 const { validateField } = require("../middlewares/fieldValidator.js");
-const decodeUserFromToken =  require("../middlewares/auth.js").decodeUserFromToken;
 const checkAuth  = require("../middlewares/auth.js").checkAuth;
 
 const { Router } = require("express");
 
 const router = Router();
+router.use(require("../middlewares/response").jsonExtra);
 
 const propertiesCtrl = require("../controllers/properties.js");
 
@@ -17,7 +17,7 @@ router.get("/", propertiesCtrl.getProperties);
 
 
 /*---------- Protected Routes ----------*/
-router.use(decodeUserFromToken);
+router.use(require("../middlewares/auth.js").decodeUserFromToken);
 
 // obtener properties
 router.get("/owned", propertiesCtrl.getOwnedProperties);
