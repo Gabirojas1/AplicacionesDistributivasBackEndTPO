@@ -60,7 +60,7 @@ const User = sq.define('user', {
   {
     tableName: 'users',
     defaultScope: {
-      attributes: { exclude: ['password'] },
+      attributes: { exclude: ['password', 'otp'] },
     },
     scopes: {
       withPassword: {

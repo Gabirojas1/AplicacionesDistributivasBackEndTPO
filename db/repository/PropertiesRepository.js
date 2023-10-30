@@ -141,6 +141,9 @@ const getProperties = async ({
 	if (game_room !== undefined) 
 		whereStatement.game_room = game_room;
 
+	if (!filterOwned)
+		whereStatement.status = "Publicada";
+
 	let contractTypeWhereClause = {};
 	if (contractType) {
 		contractTypeWhereClause.contractType = contractType;
@@ -203,10 +206,6 @@ const getProperties = async ({
         	required: Object.keys(locationTypeWhereClause).length ? true : false
 		}]
 	}
-
-	// if (filterOwned) {
-	// 	findStatement.include = 'user';
-	// }
 
 	let totalRecords = await Property.count({ where: whereStatement });
 
@@ -287,12 +286,12 @@ const addProperty = async (body) => {
 				if (response && response.statusText == "OK") {
 
 					clone.location.id = response.data.results[0].place_id;
-					
+
 					clone.location.latitude = response.data.results[0].geometry.location.lat;
 					clone.location.longitude = response.data.results[0].geometry.location.lng;
 
 					aux = await Location.findOrCreate({
-						where: {id: clone.location.id},
+						where: { id: clone.location.id },
 						defaults: clone.location
 					});
 
@@ -302,10 +301,10 @@ const addProperty = async (body) => {
 				// TODO! handle API error
 			}
 
-			
+
 		})
 		.catch((error) => {
-			console.error('Failed to retrieve data : ', error);
+			throw error
 		});
 
 	await result.save();
@@ -326,19 +325,38 @@ const updateProperty = async (property, body) => {
 
 	await property.update(clone);
 
-	// agregar associations 
-
 	// Location
-	// TODO! servicio para obtener latitude y longitude en base a la info de location
 	if (body.location) {
-		let location = await Location.findOrCreate({
-			where: body.location,
-			defaults: body.location
-		});
+		
+		// Actualizarla con la info del body.
+		// Exceptuando campos no editables
+		var cloneLoc = JSON.parse(JSON.stringify(body.location));
 
-		property.locationId = location[0].id;
-		property.location = location[0];
-		property.setLocation(location[0]);
+		// campos no editables
+		delete cloneLoc.id;
+		delete cloneLoc.latitude;
+		delete cloneLoc.longitude;
+
+		// Google Maps call
+		let response = await geocodeAddress(cloneLoc.street, cloneLoc.streetNumber,
+			cloneLoc.district, cloneLoc.province, cloneLoc.country);
+
+		if (response && response.statusText == "OK") {
+
+			cloneLoc.id = response.data.results[0].place_id;
+
+			cloneLoc.latitude = response.data.results[0].geometry.location.lat;
+			cloneLoc.longitude = response.data.results[0].geometry.location.lng;
+
+			aux = await Location.findOrCreate({
+				where: { id: cloneLoc.id },
+				defaults: cloneLoc
+			});
+
+			property.locationId = aux[0].id;
+			property.location = aux[0];
+			property.setLocation(aux[0]);
+		}
 	}
 
 	// Tipos de Contrato

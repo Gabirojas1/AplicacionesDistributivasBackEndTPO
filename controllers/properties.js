@@ -15,7 +15,7 @@ const getProperties = async (req, res) => {
 
     params.skip = params.skip ? parseInt(params.skip, 10) : 0
     params.limit = params.limit ? parseInt(params.limit, 10) : 10
-    params.filterOwned = params.filterOwned ? true : false
+    params.filterOwned = req.filterOwned ? true : false
 
     let result = await PropertiesRepository.getProperties(params)
     
@@ -36,7 +36,7 @@ const getOwnedProperties = async (req, res) => {
   // Get Logged-Sn User properties....
   // don't filter by status, get em' all.
   req.filterOwned = true;
-  req.body.userId = req.body.id;
+  req.query.userId = req.body.id;
 
   return await getProperties(req, res);
 };
@@ -107,7 +107,7 @@ const updateProperty = async (req, res) => {
       });
     }
 
-    let property = properties[0];
+    let property = properties.data[0];
     if (property.userId != body.id) {
       return res.status(401).jsonExtra({
         status: "error",
