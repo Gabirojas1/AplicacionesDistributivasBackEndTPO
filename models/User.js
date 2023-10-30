@@ -3,7 +3,7 @@ const { sq } = require('../db/database.js');
 
 const Property = require('./Property.js');
 
-const { PropertyTypeEnum, ContractTypeEnum, CurrencyTypeEnum, UserTypeEnum, UserStateEnum } = require('../common/constants.js');
+const { PropertyTypeEnum, ContractTypeEnum, CurrencyTypeEnum, UserTypeEnum, UserStateEnum, PositionEnum, OrientationEnum } = require('../common/constants.js');
 const ContractType = require('./ContractType.js');
 const Location = require('./Location.js');
 
@@ -148,8 +148,8 @@ User.sync().then(async () => {
           mtsCovered: 50,
           mtsHalfCovered: 50,
           mtsUncovered: 50,
-          position: "Horizontal",
-          orientation: "Norte",
+          position: PositionEnum.FRONT,
+          orientation: OrientationEnum.N,
           numEnvironments: 4,
           numRooms: 4,
           numBathrooms: 2,

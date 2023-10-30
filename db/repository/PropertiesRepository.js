@@ -4,6 +4,7 @@ const { Op, where } = require('sequelize');
 const User = require('../../models/User');
 const ContractType = require('../../models/ContractType');
 const Location = require('../../models/Location');
+const moment = require('moment');
 
 const axios = require('axios');
 const { response } = require('express');
@@ -12,10 +13,14 @@ const { response } = require('express');
 * Gets properties by filtering query
 * @returns List of properties
 */
-const getProperties = async ({ propertyId, userId, title, description,
-	antiquity, mtsCovered, mtsUnconvered, position, orientation, numEnvironments,
-	numRooms, numBathrooms, numCars, roofTop, balcony, vault, filterOwned,
-	minRating, orderBy, orderType, skip, limit }) => {
+const getProperties = async ({ 
+    propertyId, userId, title, description, antiquity, mtsCovered, mtsUnconvered,
+    position, orientation, numEnvironments, numRooms, numBathrooms, numCars,
+    roofTop, balcony, vault, filterOwned, minRating, orderBy, orderType, skip,
+    limit, contractType, propertyType, sum, laundry, swimming_pool, sport_field, 
+    solarium, gym, sauna, security, game_room, minPrice, maxPrice, expMinPrice, expMaxPrice,
+	currency, country, province, district, status
+}) => {
 
 	let result = [];
 
@@ -54,8 +59,133 @@ const getProperties = async ({ propertyId, userId, title, description,
 		}
 	}
 
-	if (!filterOwned) {
-		whereStatement.status = "Publicada";
+	if (status) {
+		whereStatement.status = status
+	}
+
+	if(propertyType)
+		whereStatement.propertyType = propertyType;
+
+	if (antiquity)
+		whereStatement.antiquity = antiquity;
+
+	if (mtsCovered)
+		whereStatement.mtsCovered = mtsCovered;
+
+	if (mtsUnconvered)
+		whereStatement.mtsUnconvered = mtsUnconvered;
+
+	if(position)
+		whereStatement.position = position;
+
+	if(orientation)
+		whereStatement.orientation = orientation;
+
+	if (numEnvironments !== undefined) {
+		whereStatement.numEnvironments = { 
+		[Op.gte]: numEnvironments 
+		};
+	}
+
+	if (numRooms !== undefined) {
+		whereStatement.numRooms = { 
+		[Op.gte]: numRooms 
+		};
+	}
+
+	if (numBathrooms !== undefined) {
+		whereStatement.numBathrooms = { 
+		[Op.gte]: numBathrooms 
+		};
+	}
+
+	if (numCars !== undefined) {
+		whereStatement.numCars = { 
+		[Op.gte]: numCars 
+		};
+	}
+
+	if (roofTop !== undefined)
+		whereStatement.roofTop = roofTop;
+
+	if (balcony !== undefined)
+		whereStatement.balcony = balcony;
+
+	if (vault !== undefined)
+		whereStatement.vault = vault;
+
+	if (sum !== undefined) 
+		whereStatement.sum = sum;
+	
+	if (laundry !== undefined) 
+		whereStatement.laundry = laundry;
+	
+	if (swimming_pool !== undefined) 
+		whereStatement.swimming_pool = swimming_pool;
+	
+	if (sport_field !== undefined) 
+		whereStatement.sport_field = sport_field;
+	
+	if (solarium !== undefined) 
+		whereStatement.solarium = solarium;
+	
+	if (gym !== undefined) 
+		whereStatement.gym = gym;
+	
+	if (sauna !== undefined) 
+		whereStatement.sauna = sauna;
+	
+	if (security !== undefined) 
+		whereStatement.security = security;
+	
+	if (game_room !== undefined) 
+		whereStatement.game_room = game_room;
+
+	let contractTypeWhereClause = {};
+	if (contractType) {
+		contractTypeWhereClause.contractType = contractType;
+	}
+
+	if (minPrice !== undefined) {
+		contractTypeWhereClause.price = { [Op.gte]: minPrice };
+	}
+
+	if (maxPrice !== undefined) {
+		if (contractTypeWhereClause.price) {
+			contractTypeWhereClause.price[Op.lte] = maxPrice;
+		} else {
+			contractTypeWhereClause.price = { [Op.lte]: maxPrice };
+		}
+	}
+
+	if (expMinPrice !== undefined) {
+		contractTypeWhereClause.expPrice = { [Op.gte]: expMinPrice };
+	}
+
+	if (expMaxPrice !== undefined) {
+		if (contractTypeWhereClause.expPrice) {
+			contractTypeWhereClause.expPrice[Op.lte] = expMaxPrice;
+		} else {
+			contractTypeWhereClause.expPrice = { [Op.lte]: expMaxPrice };
+		}
+	}
+
+	if (currency) {
+		contractTypeWhereClause.currency = currency;
+	}
+
+	let locationTypeWhereClause = {};
+	
+	if (contractType) {
+		locationTypeWhereClause.country = country;
+	}
+
+	if (province) {
+		locationTypeWhereClause.province = province;
+	}
+
+	if (district) {
+		locationTypeWhereClause.district = district;
 	}
 
 	var findStatement = {
@@ -63,30 +193,44 @@ const getProperties = async ({ propertyId, userId, title, description,
 		order: [orderStatement],
 		offset: skip,
 		limit: limit,
-		include: [ContractType, Location]
-	};
+		include: [{
+			model: ContractType,
+			where: Object.keys(contractTypeWhereClause).length ? contractTypeWhereClause : undefined,
+        	required: Object.keys(contractTypeWhereClause).length ? true : false
+		}, {
+			model: Location,
+			where: Object.keys(locationTypeWhereClause).length ? locationTypeWhereClause : undefined,
+        	required: Object.keys(locationTypeWhereClause).length ? true : false
+		}]
+	}
 
-	// if (!filterOwned) {
+	// if (filterOwned) {
 	// 	findStatement.include = 'user';
 	// }
 
+	let totalRecords = await Property.count({ where: whereStatement });
+
 	await Property.findAll(findStatement).then(res => {
-		result = res;
-
-		// TODO!
-		// obtenemos los resultados y creamos los
-		// value object de respuesta (complete property VO)
-		// 	let result = [];
-		// 	for (const record of res.rows) {
-
-		// 	}
-
-
+		if (!res.length) {
+			const error = new Error("Ningún resultado encontrado para los filtros indicados.")
+			error.status = 404
+			throw error
+		} else {
+			result =  {
+				"code": "200",
+				"timestamp": moment().unix(),
+				"page": Math.floor(skip / limit) + 1,
+				"total": res.length,
+				"cantTotal": totalRecords,
+				"cantPage": Math.ceil(totalRecords/limit),
+				"data": res
+			}
+		}
 	}).catch((error) => {
-		console.error('Failed to retrieve data : ', error);
-	});
+        throw error
+	})
 
-	return result;
+	return result
 };
 
 /**
