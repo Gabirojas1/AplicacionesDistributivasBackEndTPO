@@ -21,8 +21,11 @@ const getProperties = async (req, res) => {
 
     return res.status(200).json(result)
   } catch (e) {
-    return res.status(e.status).json({ 
-      "code": e.status,
+    const validHttpStatus = e.status >= 100 && e.status < 600;
+    const httpStatus = validHttpStatus ? e.status : 500;
+    
+    return res.status(httpStatus).json({ 
+      "code": httpStatus,
       "msg": e.message,
       "timestamp": moment().unix(),
       "data": [] 
