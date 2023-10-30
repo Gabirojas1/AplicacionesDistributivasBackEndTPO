@@ -22,7 +22,7 @@ services:
       - backend-myhome.pg
   backend-myhome.pg:
     container_name: backend-myhome.pg
-    image: postgres:latest
+    image: postgis/postgis:16-3.4
     volumes:
       - /shared_folder/postgresql:/var/lib/postgresql
       - ./db/script:/docker-entrypoint-initdb.d

@@ -5,6 +5,7 @@ const User = require('../../models/User');
 const ContractType = require('../../models/ContractType');
 const Location = require('../../models/Location');
 const moment = require('moment');
+const Sequelize = require('sequelize');
 
 const axios = require('axios');
 const { response } = require('express');
@@ -19,7 +20,7 @@ const getProperties = async ({
     roofTop, balcony, vault, filterOwned, minRating, orderBy, orderType, skip,
     limit, contractType, propertyType, sum, laundry, swimming_pool, sport_field, 
     solarium, gym, sauna, security, game_room, minPrice, maxPrice, expMinPrice, expMaxPrice,
-	currency, country, province, district, status
+	currency, country, province, district, status, lat, long
 }) => {
 
 	let result = [];
@@ -176,7 +177,7 @@ const getProperties = async ({
 
 	let locationTypeWhereClause = {};
 	
-	if (contractType) {
+	if (country) {
 		locationTypeWhereClause.country = country;
 	}
 
@@ -186,6 +187,10 @@ const getProperties = async ({
 
 	if (district) {
 		locationTypeWhereClause.district = district;
+	}
+
+	if (lat && long) {
+		locationTypeWhereClause.geom = getNearbyCondition(lat, long, 1000);
 	}
 
 	var findStatement = {
@@ -203,7 +208,7 @@ const getProperties = async ({
         	required: Object.keys(locationTypeWhereClause).length ? true : false
 		}]
 	}
-
+	console.log(findStatement)
 	// if (filterOwned) {
 	// 	findStatement.include = 'user';
 	// }
@@ -388,6 +393,18 @@ const updateProperty = async (property, body) => {
 // Elimina propiedad existente
 const deleteProperty = async ({ propertyId }) => {
 
+};
+
+/**
+ * 
+ * @param {*} lat 
+ * @param {*} long 
+ * @param {*} distanceInMeters 
+ * @returns 
+ */
+const getNearbyCondition = (lat, long, distanceInMeters) => {
+	const point = `ST_SetSRID(ST_MakePoint(${long}, ${lat}), 4326)::geography`;
+    return Sequelize.literal(`ST_DWithin(geom::geography, ${point}, ${distanceInMeters})`);
 };
 
 /**
