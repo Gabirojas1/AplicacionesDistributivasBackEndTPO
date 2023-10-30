@@ -319,7 +319,6 @@ const updateProperty = async (property, body) => {
 	var clone = JSON.parse(JSON.stringify(body));
 	delete clone.id;
 	delete clone.rating;
-	delete clone.status;
 	delete clone.contract_types;
 	delete clone.location;
 
@@ -400,9 +399,11 @@ const updateProperty = async (property, body) => {
 	return property;
 };
 
-// Elimina propiedad existente
-const deleteProperty = async ({ propertyId }) => {
- // TODO! implement
+// Elimina logicamente una propiedad existente
+const deleteProperty = async (property) => {
+	property.status = constants.PropertyStateEnum.DESPUBLICADA;
+	property.save();
+	property.reload();
 };
 
 /**

@@ -36,7 +36,7 @@ const getOwnedProperties = async (req, res) => {
   // Get Logged-Sn User properties....
   // don't filter by status, get em' all.
   req.filterOwned = true;
-  req.query.userId = req.body.id;
+  req.params.userId = req.body.id;
 
   return await getProperties(req, res);
 };
@@ -142,30 +142,37 @@ const updateProperty = async (req, res) => {
   }
 };
 
-// Elimina propiedad existente
+// Elimina logicamente propiedad existente
 const deleteProperty = async (req, res) => {
-  const body = req.body;
-
-  // TODO validar ownership de la propiedad para el usuario
-
+  const params = req.query;
   try {
 
     // Validar que la propiedad existe
-    let properties = await PropertiesRepository.getProperties({ propertyId: body.propertyId });
-    if (properties.length < 1) {
-      return res.status(404).jsonExtra({
+    // Tiene que existir con el propertyId y pertenecer al usuario loggeado.
+    let properties = await PropertiesRepository.getProperties({
+      propertyId: params.propertyId,
+      userId: req.body.id, // body.id siempre contiene el id del usuario loggeado
+      filterOwned: true
+    });
+
+    // El usuario no es dueño de la propiedad o 
+    // La propiedad no existe
+    if (properties.data.length < 1) {
+      return res.status(401).jsonExtra({
         status: "error",
-        message: "la propiedad no existe",
+        message: "No autorizado. La propiedad no existe o no te pertenece.",
       });
     }
 
-    let result = await PropertiesRepository.deleteProperty(body);
-    if (!result) {
-      return res.status(200).jsonExtra({
+    let property = properties.data[0];
+    if (property.userId != req.body.id) {
+      return res.status(401).jsonExtra({
         status: "error",
+        message: "No autorizado. La propiedad no existe o no te pertenece.",
       });
     }
 
+    await PropertiesRepository.deleteProperty(property);
     return res.status(200).jsonExtra({
       status: "ok",
       message: "propiedad dada de baja, no se mostrara en resultados de busqueda",
