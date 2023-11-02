@@ -10,12 +10,10 @@ const path = require("path");
 
 const mailHelper = require("../helpers/mail");
 
-var cloudinary = require("cloudinary").v2;
-cloudinary.config({ 
-  cloud_name: process.env.CLOUDINARY_USER, 
-  api_key: process.env.CLOUDINARY_API_KEY, 
-  api_secret: process.env.CLOUDINARY_SECRET, 
-});
+
+const multimediaHelper = require("../helpers/multimedia");
+
+
 
 const signup = async (req, res = response) => {
   try {
@@ -51,19 +49,7 @@ const signup = async (req, res = response) => {
     // cloudinary (photo upload
     let photo = req.files["photo"].path;
     if (photo) {
-
-      await cloudinary.uploader.upload(photo, {
-        format: 'png', width: 200, height: 200, tags: [`${firstName}`, `${lastName}`, "myhome", "uade", "distribuidas", "app"]
-      }).then((image) => {
-        photo = image.url;
-      }).catch((err) => {
-        console.log(err);
-        return res.status(500).jsonExtra({
-          ok: false,
-          message: "Error inesperado al subir imagen a cloudinary.",
-          error: err
-        });
-      });
+      photo = await multimediaHelper.uploadImage(photo);
     }
 
     let hash = await bcrypt.hash(password, constants.SALT_ROUNDS);
