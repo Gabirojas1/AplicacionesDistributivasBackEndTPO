@@ -9,6 +9,7 @@ const Sequelize = require('sequelize');
 
 const axios = require('axios');
 const { response } = require('express');
+const Multimedia = require('../../models/Multimedia');
 
 /**
 * Gets properties by filtering query
@@ -142,6 +143,9 @@ const getProperties = async ({
 	if (game_room !== undefined) 
 		whereStatement.game_room = game_room;
 
+	if (!filterOwned)
+		whereStatement.status = "Publicada";
+
 	let contractTypeWhereClause = {};
 	if (contractType) {
 		contractTypeWhereClause.contractType = contractType;
@@ -206,9 +210,11 @@ const getProperties = async ({
 			model: Location,
 			where: Object.keys(locationTypeWhereClause).length ? locationTypeWhereClause : undefined,
         	required: Object.keys(locationTypeWhereClause).length ? true : false
+		}, {
+			model: Multimedia
 		}]
 	}
-	console.log(findStatement)
+
 	// if (filterOwned) {
 	// 	findStatement.include = 'user';
 	// }
@@ -274,46 +280,61 @@ const addProperty = async (body) => {
 		.then(async res => {
 			result = res;
 
-			// reset location object from body
-			clone = JSON.parse(JSON.stringify(body))
-
 			// Location
-			if (clone.location) {
+			if (body.location) {
 
-				// campos no editables
-				delete clone.location.id;
-				delete clone.location.latitude;
-				delete clone.location.longitude;
+				// reset location object from body
+				let cloneLoc = JSON.parse(JSON.stringify(body.location))
 
 				// Google Maps call
-				let response = await geocodeAddress(clone.location.street, clone.location.streetNumber,
-					clone.location.district, clone.location.province, clone.location.country);
+				// Si el front ya geocodifico debe informar estos datos
+				if (!cloneLoc.latitude || !cloneLoc.longitude || !cloneLoc.id) {
 
-				if (response && response.statusText == "OK") {
+					delete cloneLoc.id;
+					delete cloneLoc.latitude;
+					delete cloneLoc.longitude;
 
-					clone.location.id = response.data.results[0].place_id;
-					
-					clone.location.latitude = response.data.results[0].geometry.location.lat;
-					clone.location.longitude = response.data.results[0].geometry.location.lng;
+					let response = await geocodeAddress(cloneLoc.street, cloneLoc.streetNumber,
+						cloneLoc.district, cloneLoc.province, cloneLoc.country);
+
+					if (response && response.statusText == "OK") {
+						cloneLoc.id = response.data.results[0].place_id;
+						cloneLoc.latitude = response.data.results[0].geometry.location.lat;
+						cloneLoc.longitude = response.data.results[0].geometry.location.lng;
+					}
+				} else {
 
 					aux = await Location.findOrCreate({
-						where: {id: clone.location.id},
-						defaults: clone.location
+						where: { id: cloneLoc.id },
+						defaults: cloneLoc
 					});
 
 					result.locationId = aux[0].id;
+					result.location = aux[0];
 					result.setLocation(aux[0]);
 				}
+
 				// TODO! handle API error
 			}
 
-			
+			// Multimedia / Photos
+			if (body.photos) {
+
+				await body.photos.forEach(async photo => {
+
+					let mlt = await Multimedia.create({propertyId: res.id, url: photo.url})
+					await res.addMultimedia(mlt);
+
+				});
+
+			}
 		})
 		.catch((error) => {
-			console.error('Failed to retrieve data : ', error);
+			throw error
 		});
 
 	await result.save();
+	await result.reload();
 	return result;
 };
 
@@ -323,27 +344,48 @@ const updateProperty = async (property, body) => {
 	// Actualizarla con la info del body.
 	// Exceptuando campos no editables
 	var clone = JSON.parse(JSON.stringify(body));
-	delete clone.propertyId;
+	delete clone.id;
 	delete clone.rating;
-	delete clone.status;
 	delete clone.contract_types;
-	delete clone.location
+	delete clone.location;
 
 	await property.update(clone);
 
-	// agregar associations 
-
 	// Location
-	// TODO! servicio para obtener latitude y longitude en base a la info de location
 	if (body.location) {
-		let location = await Location.findOrCreate({
-			where: body.location,
-			defaults: body.location
-		});
 
-		property.locationId = location[0].id;
-		property.location = location[0];
-		property.setLocation(location[0]);
+		// reset location object from body
+		let cloneLoc = JSON.parse(JSON.stringify(body.location))
+
+		// Google Maps call
+		// Si el front ya geocodifico debe informar estos datos
+		if (!cloneLoc.latitude || !cloneLoc.longitude || !cloneLoc.id) {
+
+			delete cloneLoc.id;
+			delete cloneLoc.latitude;
+			delete cloneLoc.longitude;
+
+			let response = await geocodeAddress(cloneLoc.street, cloneLoc.streetNumber,
+				cloneLoc.district, cloneLoc.province, cloneLoc.country);
+
+			if (response && response.statusText == "OK") {
+				cloneLoc.id = response.data.results[0].place_id;
+				cloneLoc.latitude = response.data.results[0].geometry.location.lat;
+				cloneLoc.longitude = response.data.results[0].geometry.location.lng;
+			}
+		} else {
+
+			aux = await Location.findOrCreate({
+				where: { id: cloneLoc.id },
+				defaults: cloneLoc
+			});
+
+			property.locationId = aux[0].id;
+			property.location = aux[0];
+			property.setLocation(aux[0]);
+		}
+		
+		// TODO! handle API error
 	}
 
 	// Tipos de Contrato
@@ -390,9 +432,11 @@ const updateProperty = async (property, body) => {
 	return property;
 };
 
-// Elimina propiedad existente
-const deleteProperty = async ({ propertyId }) => {
-
+// Elimina logicamente una propiedad existente
+const deleteProperty = async (property) => {
+	property.status = constants.PropertyStateEnum.DESPUBLICADA;
+	property.save();
+	property.reload();
 };
 
 /**

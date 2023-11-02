@@ -4,7 +4,7 @@ const User = require('../../models/User.js');
  * Creates User with the given data
  * @returns account created
  */
-const signup = async(firstName, lastName, userType, password, mail, contactMail, fantasyName, phone, cuit) => {
+const signup = async(firstName, lastName, userType, password, mail, contactMail, fantasyName, phone, cuit, photo) => {
     let user = null; 
     
     await User.create({
@@ -16,8 +16,9 @@ const signup = async(firstName, lastName, userType, password, mail, contactMail,
         contactMail: contactMail, 
         fantasyName: fantasyName,
         phone: phone, 
-        cuit: cuit}
-    ).then(res => {
+        cuit: cuit,
+        photo: photo
+    }).then(res => {
         user = res;
     }).catch((error) => {
         console.error('Failed to insert data : ', error);
@@ -55,9 +56,8 @@ const getUserByIdUsuario = async(uid) => {
 
 
 /**
- * Lookups for an account in the postgres database with the given mail. 
- * If not exist returns null
- * @returns account if exists else null
+ * Busca usuario por mail
+ * @returns user si existe, sino null
  */
 const getUserByMail = async(mail) => {
     let user = null; 
@@ -66,6 +66,30 @@ const getUserByMail = async(mail) => {
     }
 
     await User.findOne({
+        where: {
+            mail: mail
+        }
+    }).then(res => {
+        user = res;
+    }).catch((error) => {
+        console.error('Failed to retrieve data : ', error);
+    });
+
+    return user;
+};
+
+/**
+ * Busca usuario por mail
+ * Devuelve el modelo user, incluyendo el campo password para comparacion de hashes
+ * @returns user si existe, sino null
+ */
+const getUserByMailIncludePasswordField = async(mail) => {
+    let user = null; 
+    if (mail == undefined || mail.length < 1) {
+        return null
+    }
+
+    await User.scope('withPassword').findOne({
         where: {
             mail: mail
         }
@@ -103,20 +127,32 @@ const confirmSignup = async(uid) => {
     return user;
 };
 
-const genOTP = async(uid, otp) => {
-    try {
+// actualiza usuario existente
+const updateUser = async (user, body) => {
 
-        var query = `UPDATE users SET OTP = '${otp}' WHERE id = '${uid}' `;
-        const records = await pg_pool.query(query);
-        if (records.rowCount >= 1) {
+	// Reemplazar el user con la info del body
+	// Exceptuando campos no editables
+	var clone = JSON.parse(JSON.stringify(body));
+	delete clone.id;
+    delete clone.userId;
+    delete clone.userType;
+    delete clone.repeatPassword;
+    delete clone.status;
+    delete clone.createdAt;
+    delete clone.updatedAt;
 
-            return true
-        } else {
-            return false;
-        }
-    } catch (error) {
-        return false;
-    }
+    // TODO! agregar associations 
+	await user.update(clone);
+	await user.save();
+    await user.reload();
+	return user;
+};
+
+
+const genOTP = async(user, otp) => {
+    user.otp = otp;
+    user.save();
+    user.reload();
 };
 
 const updatePassword = async(uid, password) => {
@@ -139,7 +175,9 @@ module.exports = {
     signup,
     getUserByIdUsuario,
     getUserByMail,
+    getUserByMailIncludePasswordField,
     confirmSignup,
+    updateUser,
     genOTP,
     updatePassword,
 };
