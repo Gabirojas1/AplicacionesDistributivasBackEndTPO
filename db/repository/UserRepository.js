@@ -135,6 +135,31 @@ const updatePassword = async(uid, password) => {
     }
 };
 
+/**
+ * Creates or find User with the given data
+ * @returns account created
+ */
+const findOrCreate = async(firstName, lastName, userType, mail, photo) => {
+    let user = null; 
+    
+    await User.findOrCreate({
+        where: {mail: mail},
+        defaults:{
+            firstName: firstName,
+            lastName: lastName, 
+            userType: userType,
+            mail: mail,
+            photo: photo
+        }
+    }).then(res => {
+        user = res;
+    }).catch((error) => {
+        console.error('Failed to insert data : ', error);
+    });
+
+    return user;
+};
+
 module.exports = {
     signup,
     getUserByIdUsuario,
@@ -142,4 +167,5 @@ module.exports = {
     confirmSignup,
     genOTP,
     updatePassword,
+    findOrCreate
 };

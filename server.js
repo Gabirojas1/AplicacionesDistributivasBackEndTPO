@@ -21,6 +21,7 @@ class Server {
     // Body Parser
     this.app.use(express.json());
     this.app.use("/v1/auths", require("./router/auths"));
+    this.app.use("/v1/authGoogle", require("./router/authGoogle"));
     this.app.use("/v1/properties", require("./router/properties"));
     this.app.use("/v1/users", require("./router/users"));
   }
