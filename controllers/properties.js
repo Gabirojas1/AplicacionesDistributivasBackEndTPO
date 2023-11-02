@@ -2,10 +2,8 @@ var constants = require("../common/constants");
 
 const UserRepository = require("../db/repository/UserRepository");
 const PropertiesRepository = require("../db/repository/PropertiesRepository.js");
-const moment = require('moment');
-const Location = require("../models/Location");
-const ContractType = require("../models/ContractType");
 
+const multimediaHelper = require('../helpers/multimedia')
 
 // Metodo general que es utilizado en dos endpoints distintos ya que es configurable el metodo de ordenamiento, por cuales campos filtrar
 // y el paginado que se desea.
@@ -61,6 +59,26 @@ const addProperty = async (req, res) => {
         message: "Error: solo las inmobiliarias pueden agregar propiedades.",
       });
     }
+
+    let photosArray = [];
+
+    // cloudinary (photo upload)
+    let photos = req.files["photos"];
+    if (photos) {
+
+      
+
+      for (const photo of photos) {
+        const newPath = await multimediaHelper.cloudinaryImageUploadMethod(photo.path);
+        photosArray.push(newPath);
+      }
+
+
+      //body.photos = await multimediaHelper.getImageArrayFromMultipart(photos);
+    }
+
+    body.photos = photosArray;
+
 
     let property = await PropertiesRepository.addProperty(body);
     if (property) {
