@@ -17,9 +17,9 @@ const token = req.headers.authorization
   try {
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: auth.clientId
+      audience: auth.webClientId
     });
-    
+
     const payload = ticket.getPayload();
     
     const usuario = await UserRepository.findOrCreate(
