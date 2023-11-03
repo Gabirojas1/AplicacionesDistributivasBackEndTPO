@@ -63,7 +63,7 @@ const addProperty = async (req, res) => {
     let photosArray = [];
 
     // cloudinary (photo upload)
-    let photos = req.files["photos"];
+    let photos = req.files && req.files["photos"];
     if (photos) {
 
       // una sola imagen
