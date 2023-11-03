@@ -110,7 +110,7 @@ module.exports = {
   SALT_ROUNDS,
   defaultProfileGuestImage: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894991/dohnmb6blyd2ei1bjha7.png",
   defaultProfileStudentImage: "https://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894850/rjhj017czkwubzqiw9uu.png",
+  OTP_LENGTH,
   getKeyByValue,
-  DEFAULT_PASSWORD,
-  OTP_LENGTH
+  DEFAULT_PASSWORD
 };
