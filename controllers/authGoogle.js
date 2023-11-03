@@ -11,7 +11,9 @@ const authGoogle = async (req, res = response) => {
 const token = req.headers.authorization
 
   if (!token) {
-    return res.status(401).json({ error: 'Token no proporcionado' })
+    return res.status(401).jsonExtra({
+         error: 'Token no proporcionado' 
+        })
   }
 
   try {
@@ -33,7 +35,7 @@ const token = req.headers.authorization
     );
     
     if (!usuario) {
-      return res.status(400).json({
+      return res.status(400).jsonExtra({
         ok: false,
         message: "Credenciales invalidas.",
       });
@@ -41,12 +43,12 @@ const token = req.headers.authorization
 
     // Generate JWT
     const tokenSend = await generateJWT(usuario.id);
-    return res.json({
+    return res.status(200).jsonExtra({
       ok: true,
       tokenSend,
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(500).jsonExtra({
       ok: false,
       message: "Error: " + error,
     });

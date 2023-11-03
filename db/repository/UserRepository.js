@@ -194,8 +194,8 @@ const findOrCreate = async(firstName, lastName, userType, mail, photo, password,
     }).catch((error) => {
         console.error('Failed to insert data : ', error);
     });
-
-    return user;
+    
+    return user[0];
 };
 
 module.exports = {
