@@ -71,11 +71,12 @@ const CurrencyTypeEnum = {
 
 const ContenidoEnum = ["foto", "video", "audio"];
 
-
+const DEFAULT_PASSWORD = '1234'
 
 const auth = {
   type: "OAuth2",
   user: "gaxelac@gmail.com",
+  webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
   clientId: process.env.GMAIL_API_KEY,
   clientSecret: process.env.GMAIL_API_SECRET,
   refreshToken: process.env.GMAIL_API_REFRESH_TOKEN,
@@ -111,5 +112,6 @@ module.exports = {
   defaultProfileGuestImage: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894991/dohnmb6blyd2ei1bjha7.png",
   defaultProfileStudentImage: "https://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894850/rjhj017czkwubzqiw9uu.png",
   OTP_LENGTH,
-  getKeyByValue
+  getKeyByValue,
+  DEFAULT_PASSWORD
 };
