@@ -66,15 +66,18 @@ const addProperty = async (req, res) => {
     let photos = req.files["photos"];
     if (photos) {
 
-      
+      // una sola imagen
+      if(!photos.length) {
+        let tmp_path = photos.path;
+
+        photos = []
+        photos.push({path: tmp_path});
+      }
 
       for (const photo of photos) {
         const newPath = await multimediaHelper.cloudinaryImageUploadMethod(photo.path);
         photosArray.push(newPath);
       }
-
-
-      //body.photos = await multimediaHelper.getImageArrayFromMultipart(photos);
     }
 
     body.photos = photosArray;
@@ -96,8 +99,8 @@ const addProperty = async (req, res) => {
 
   } catch (e) {
     return res
-      .status(e.statusCode ? e.statusCode : 500)
-      .jsonExtra({ status: e.name, message: e.message });
+      .status(e.status ? e.status : 500)
+      .jsonExtra({ status: e.status, message: e.message });
   }
 };
 
@@ -133,6 +136,28 @@ const updateProperty = async (req, res) => {
       });
     }
 
+    let photosArray = [];
+
+    // cloudinary (photo upload)
+    let photos = req.files["photos"];
+    if (photos) {
+
+      // una sola imagen
+      if(!photos.length) {
+        let tmp_path = photos.path;
+
+        photos = []
+        photos.push({path: tmp_path});
+      }
+
+      for (const photo of photos) {
+        const newPath = await multimediaHelper.cloudinaryImageUploadMethod(photo.path);
+        photosArray.push(newPath);
+      }
+    }
+
+    body.photos = photosArray;
+
     // update base property
     let result = await PropertiesRepository.updateProperty(property, body);
     if (!result) {
@@ -142,21 +167,15 @@ const updateProperty = async (req, res) => {
       });
     }
 
-    // refresh fields
-    finalResult = await PropertiesRepository.getProperties({
-      propertyId: result.id,
-      filterOwned: true
-    });
-
     return res.status(200).jsonExtra({
       status: "ok",
       message: "propiedad actualizada",
-      data: finalResult[0],
+      data: result,
     });
   } catch (e) {
     return res
-      .status(e.statusCode ? e.statusCode : 500)
-      .jsonExtra({ status: e.name, message: e.message });
+      .status(e.status ? e.status : 500)
+      .jsonExtra({ status: e.status, message: e.message });
   }
 };
 
@@ -197,8 +216,8 @@ const deleteProperty = async (req, res) => {
     });
   } catch (e) {
     return res
-      .status(e.statusCode)
-      .jsonExtra({ status: e.name, message: e.message });
+      .status(e.status ? e.status : 500)
+      .jsonExtra({ status: e.status, message: e.message });
   }
 };
 

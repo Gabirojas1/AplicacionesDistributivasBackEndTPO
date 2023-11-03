@@ -144,7 +144,7 @@ const updateUser = async (user, body) => {
     // TODO! agregar associations 
 	await user.update(clone);
 	await user.save();
-    await user.reload();
+    await user.reload({include: [{all: true, nested: true}]});
 	return user;
 };
 
@@ -152,7 +152,7 @@ const updateUser = async (user, body) => {
 const genOTP = async(user, otp) => {
     user.otp = otp;
     user.save();
-    user.reload();
+    user.reload({include: [{all: true, nested: true}]});
 };
 
 const updatePassword = async(uid, password) => {
