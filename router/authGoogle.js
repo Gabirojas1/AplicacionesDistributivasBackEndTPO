@@ -6,10 +6,7 @@ const { validateField } = require("../middlewares/fieldValidator");
 const router = Router();
 
 router.post(
-    "/", [
-        check("mail", "El mail es obligatorio").isEmail(),
-        validateField,
-    ],
+    "/",
     authGoogle
 );
 
