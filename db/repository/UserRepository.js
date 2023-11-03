@@ -139,7 +139,7 @@ const updatePassword = async(uid, password) => {
  * Creates or find User with the given data
  * @returns account created
  */
-const findOrCreate = async(firstName, lastName, userType, mail, photo) => {
+const findOrCreate = async(firstName, lastName, userType, mail, photo, password, status) => {
     let user = null; 
     
     await User.findOrCreate({
@@ -149,7 +149,9 @@ const findOrCreate = async(firstName, lastName, userType, mail, photo) => {
             lastName: lastName, 
             userType: userType,
             mail: mail,
-            photo: photo
+            photo: photo, 
+            password: password,
+            status: status
         }
     }).then(res => {
         user = res;

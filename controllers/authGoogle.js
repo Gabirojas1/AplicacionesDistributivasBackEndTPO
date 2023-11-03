@@ -2,8 +2,7 @@ const { response } = require("express");
 const { generateJWT } = require("../helpers/jwt");
 const UserRepository = require("../db/repository/UserRepository");
 const {OAuth2Client} = require('google-auth-library');
-
-var constants = require("../common/constants");
+const {  UserStateEnum, RoleEnum, auth, DEFAULT_PASSWORD} = require('../common/constants.js');
 
 const client = new OAuth2Client();
 
@@ -18,16 +17,19 @@ const token = req.headers.authorization
   try {
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: constants.auth.clientId
+      audience: auth.clientId
     });
+    
     const payload = ticket.getPayload();
-
+    
     const usuario = await UserRepository.findOrCreate(
-        payload[given_name],
-        payload[family_name], 
-        constants.RoleEnum.User,
-        payload[email],
-        payload[picture]
+        payload.given_name,
+        payload.family_name, 
+        RoleEnum[0],
+        payload.email,
+        payload.picture,
+        DEFAULT_PASSWORD,
+        UserStateEnum.CONFIRMED
     );
     
     if (!usuario) {

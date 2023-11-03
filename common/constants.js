@@ -70,7 +70,7 @@ const CurrencyTypeEnum = {
 
 const ContenidoEnum = ["foto", "video", "audio"];
 
-
+const DEFAULT_PASSWORD = '1234'
 
 const auth = {
   type: "OAuth2",
@@ -107,5 +107,6 @@ module.exports = {
   SALT_ROUNDS,
   defaultProfileGuestImage: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894991/dohnmb6blyd2ei1bjha7.png",
   defaultProfileStudentImage: "https://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894850/rjhj017czkwubzqiw9uu.png",
-  getKeyByValue
+  getKeyByValue,
+  DEFAULT_PASSWORD
 };
