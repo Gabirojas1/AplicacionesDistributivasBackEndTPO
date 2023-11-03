@@ -12,6 +12,7 @@ const UserTypeEnum = {
 const UserStateEnum = {
   INITIAL: 'Initial',
   CONFIRMED: 'Confirmed',
+  DEACTIVATED: 'Deactivated'
 };
 
 const PropertyStateEnum = {
@@ -84,8 +85,10 @@ const auth = {
 const mailoptions = {
   from: "gaxelac@gmail.com",
   to: "gaxelac@gmail.com",
-  subject: "Registro en progreso",
+  subject: "Acción en progreso",
 };
+
+const OTP_LENGTH = 6;
 
 function getKeyByValue(object, value) {
   return Object.keys(object).find(key => object[key] === value);
@@ -108,6 +111,7 @@ module.exports = {
   SALT_ROUNDS,
   defaultProfileGuestImage: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894991/dohnmb6blyd2ei1bjha7.png",
   defaultProfileStudentImage: "https://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894850/rjhj017czkwubzqiw9uu.png",
+  OTP_LENGTH,
   getKeyByValue,
   DEFAULT_PASSWORD
 };
