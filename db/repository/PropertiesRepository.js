@@ -293,31 +293,27 @@ const addProperty = async (body) => {
 						cloneLoc.latitude = response.data.results[0].geometry.location.lat;
 						cloneLoc.longitude = response.data.results[0].geometry.location.lng;
 					}
-				} else {
-
-					aux = await Location.findOrCreate({
-						where: { id: cloneLoc.id },
-						defaults: cloneLoc
-					});
-
-					result.locationId = aux[0].id;
-					result.location = aux[0];
-					result.setLocation(aux[0]);
 				}
+
+				aux = await Location.findOrCreate({
+					where: { id: cloneLoc.id },
+					defaults: cloneLoc
+				});
+
+				result.locationId = aux[0].id;
+				result.location = aux[0];
+				result.setLocation(aux[0]);
+				
 
 				// TODO! handle API error
 			}
 
 			// Multimedia / Photos
 			if (body.photos) {
-
 				await body.photos.forEach(async photo => {
-
 					let mlt = await Multimedia.create({propertyId: res.id, url: photo.url})
 					await res.addMultimedia(mlt);
-
 				});
-
 			}
 		})
 		.catch((error) => {
@@ -325,7 +321,7 @@ const addProperty = async (body) => {
 		});
 
 	await result.save();
-	await result.reload();
+	await result.reload({include: [{all: true, nested: true}]});
 	return result;
 };
 
@@ -339,6 +335,7 @@ const updateProperty = async (property, body) => {
 	delete clone.rating;
 	delete clone.contract_types;
 	delete clone.location;
+	delete clone.photos;
 
 	await property.update(clone);
 
@@ -364,18 +361,18 @@ const updateProperty = async (property, body) => {
 				cloneLoc.latitude = response.data.results[0].geometry.location.lat;
 				cloneLoc.longitude = response.data.results[0].geometry.location.lng;
 			}
-		} else {
-
-			aux = await Location.findOrCreate({
-				where: { id: cloneLoc.id },
-				defaults: cloneLoc
-			});
-
-			property.locationId = aux[0].id;
-			property.location = aux[0];
-			property.setLocation(aux[0]);
 		}
+
+		aux = await Location.findOrCreate({
+			where: { id: cloneLoc.id },
+			defaults: cloneLoc
+		});
+
+		property.locationId = aux[0].id;
+		property.location = aux[0];
+		property.setLocation(aux[0]);
 		
+
 		// TODO! handle API error
 	}
 
@@ -419,7 +416,30 @@ const updateProperty = async (property, body) => {
 		});
 	}
 
+	// Multimedia / Photos
+	if (body.photos) {
+
+		// reemplazo total de imagenes
+		await Multimedia.destroy({
+			where: {
+			  propertyId: property.id
+			},
+		  });
+
+		let multiArray = [];
+		await body.photos.forEach(photo => {
+			Multimedia.create({ propertyId: property.id, url: photo.url })
+				.then(res => {
+					multiArray.push(res);
+				})
+				.catch((error) => {
+					throw error
+				});
+		});
+		await property.addMultimedia(multiArray);
+	}
 	await property.save();
+	await property.reload({include: [{all: true, nested: true}]});
 	return property;
 };
 
@@ -427,7 +447,7 @@ const updateProperty = async (property, body) => {
 const deleteProperty = async (property) => {
 	property.status = constants.PropertyStateEnum.DESPUBLICADA;
 	property.save();
-	property.reload();
+	property.reload({include: [{all: true, nested: true}]});
 };
 
 /**

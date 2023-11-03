@@ -254,8 +254,8 @@ const updateUser = async (req, res) => {
     });
   } catch (e) {
     return res
-      .status(e.statusCode ? e.statusCode : 500)
-      .jsonExtra({ status: e.name, message: e.message });
+      .status(e.status ? e.status : 500)
+      .jsonExtra({ status: e.status, message: e.message });
   }
 };
 
