@@ -30,7 +30,8 @@ const ContractType = sq.define('contract_type', {
     defaultValue: CurrencyTypeEnum.ARS
   },
   contractDays: {
-    type: DataTypes.INTEGER
+    type: DataTypes.INTEGER,
+    defaultValue: 1095
   }//,
   //status: { // TODO! creo que el status no es necesario, manejarlo desde properties?
   //  type: DataTypes.ENUM,
