@@ -47,7 +47,7 @@ const signup = async (req, res = response) => {
     }
 
     // cloudinary (photo upload
-    let photo = req.files["photo"].path;
+    let photo = req.files && req.files["photo"] && req.files["photo"].path;
     if (photo) {
       photo = await multimediaHelper.uploadImage(photo);
     }
@@ -214,7 +214,7 @@ const updateUser = async (req, res) => {
     }
 
      // cloudinary (photo upload)
-     let photo = req.files ? req.files["photo"] : undefined;
+     let photo = req.files && req.files["photo"];
      if (photo) {
  
        await cloudinary.uploader.upload(photo.path, {
