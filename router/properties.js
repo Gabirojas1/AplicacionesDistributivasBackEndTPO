@@ -34,7 +34,14 @@ router.post("/",
    check("propertyType", "propertyType debe ser Casa, Departamento, PH, Terreno o Local Comrecial").isIn(Object.values(constants.PropertyTypeEnum)),
    check("position", "position debe ser Frente, Contrafrente, Interno o Lateral").optional().isIn(Object.values(constants.PositionEnum)),
    check("orientation", "orientation debe ser N, S, E, O, SE, SO, NO, o NE").optional().isIn(Object.values(constants.OrientationEnum)),
-
+   check("antiquity", "antiquity debe ser un entero").isInt(),
+   check("mtsCovered", "mtsCovered debe ser un entero").isInt(),
+   check("mtsHalfCovered", "mtsHalfCovered debe ser un entero").isInt(),
+   check("mtsUncovered", "mtsUncovered debe ser un entero").isInt(),
+   check("numEnvironments", "numEnvironments debe ser un entero").isInt(),
+   check("numRooms", "numRooms debe ser un entero").isInt(),
+   check("numBathrooms", "numBathrooms debe ser un entero").isInt(),
+   check("numCars", "numCars debe ser un entero").isInt(),
 
    // Validacion contract_types array
    check("contract_types", "contract_types debe ser un array de objetos").optional().isArray(),
@@ -67,7 +74,14 @@ router.patch("/",
   check("propertyType", "propertyType debe ser Casa, Departamento, PH, Terreno o Local Comrecial").optional().isIn(Object.values(constants.PropertyTypeEnum)),
   check("position", "position debe ser Frente, Contrafrente, Interno o Lateral").optional().isIn(Object.values(constants.PositionEnum)),
   check("orientation", "orientation debe ser N, S, E, O, SE, SO, NO, o NE").optional().isIn(Object.values(constants.OrientationEnum)),
-
+  check("antiquity", "antiquity debe ser un entero").isInt(),
+  check("mtsCovered", "mtsCovered debe ser un entero").isInt(),
+  check("mtsHalfCovered", "mtsHalfCovered debe ser un entero").isInt(),
+  check("mtsUncovered", "mtsUncovered debe ser un entero").isInt(),
+  check("numEnvironments", "numEnvironments debe ser un entero").isInt(),
+  check("numRooms", "numRooms debe ser un entero").isInt(),
+  check("numBathrooms", "numBathrooms debe ser un entero").isInt(),
+  check("numCars", "numCars debe ser un entero").isInt(),
 
   // Validacion contract_types array
   check("contract_types", "contract_types debe ser un array de objetos").optional().isArray(),
