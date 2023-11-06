@@ -47,18 +47,16 @@ class PropertyState {
             let result = false;
             switch (statusStr) {
                 case PropertyStateEnum.INITIAL_1:
-                    let contractTypes = await this.property.getContract_types();
-
-                    let location = await this.property.getLocation();
-
                     // Campos requeridos para progresar a State 2
                     result = this.property.title
                         && this.property.description
                         && this.property.propertyType
-                        && contractTypes.length >= 1
-                        && location;
                     break;
                 case PropertyStateEnum.INITIAL_2:
+
+                
+                    let location = await this.property.getLocation();
+
                     // Campos requeridos para progresar a State 3
                     result = this.property.antiquity
                         && this.property.mtsCovered
@@ -67,12 +65,16 @@ class PropertyState {
                         && this.property.numEnvironments
                         && this.property.numRooms
                         && this.property.numBathrooms
-                        && this.property.numCars;
+                        && this.property.numCars
+                        && location;
                     break;
                     // Campos requeridos para progresar a State 4
                 case PropertyStateEnum.INITIAL_3:
+                    let contractTypes = await this.property.getContract_types();
+
                     result = this.property.position
-                        && this.property.orientation;
+                        && this.property.orientation
+                        && contractTypes.length >= 1;
                     break;
                 default:
                     throw Error(" validateRequiredFields - error! not valid state ")
@@ -176,6 +178,9 @@ class Publicada {
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_1);
             } 
             return this.state;
+            // TODO! logica para despublicar 
+            // console.log("despublicar");
+            // await this.state.transitionTo(PropertyStateEnum.DESPUBLICADA);
         };
 
         this.toJSON = function () {
@@ -191,6 +196,8 @@ class Despublicada {
 
         this.execute = async function () {
             return this.state;
+            // console.log("publicar de nuevo");
+            // await this.state.transitionTo(PropertyStateEnum.PUBLICADA);
         };
 
         this.toJSON = function () {
