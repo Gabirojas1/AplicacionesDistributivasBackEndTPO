@@ -21,7 +21,7 @@ class Server {
     this.app.use(cors());
 
     // Add headers before the routes are defined
-    app.use(function (req, res, next) {
+    this.app.use(function (req, res, next) {
 
       // Website you wish to allow to connect
       res.setHeader('Access-Control-Allow-Origin', '*');
