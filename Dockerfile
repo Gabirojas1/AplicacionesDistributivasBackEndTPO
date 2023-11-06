@@ -10,4 +10,4 @@ RUN npm install
 
 COPY . /
 
-CMD [ "node --inspect", "index.js" ]
+CMD [ "node", "index.js" ]
