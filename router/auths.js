@@ -9,7 +9,7 @@ router.use(require("../middlewares/response").jsonExtra);
 router.post(
     "/", [
     check("mail", "El mail es obligatorio").isEmail(),
-    check("password", "La password es obligatoria").notEmpty(),
+    check("password", "La contraseña es obligatoria").notEmpty(),
     validateField,
 ],
     login
@@ -17,8 +17,8 @@ router.post(
 
 router.post(
     "/forgotPassword", [
-    check("mail", "mail es obligatorio").notEmpty(),
-    check("mail", "mail debe tener formato de email (e.g, example@my.home)").isEmail(),
+    check("mail", "El mail es obligatorio").notEmpty(),
+    check("mail", "El mail debe tener formato de email (e.g, example@my.home)").isEmail(),
     validateField,
 ],
 forgotPassword
@@ -26,10 +26,10 @@ forgotPassword
 
 router.post(
     "/resetPassword", [
-    check("password", "password es obligatoria").notEmpty(),
-    check("repeatPassword", "repeatPassword es obligatoria").notEmpty(),
-    check("otp", "otp es obligatorio").notEmpty(),
-    check("otp", "otp es un entero de 6 digitos").isInt(), // TODO! validar 6 digitos
+    check("password", "La contraseña es obligatoria").notEmpty(),
+    check("repeatPassword", "El repetir contraseña es obligatorio").notEmpty(),
+    check("otp", "El otp es obligatorio").notEmpty(),
+    check("otp", "El otp debe ser un entero de 6 digitos").isInt(), // TODO! validar 6 digitos
     validateField,
 ],
     resetPassword
