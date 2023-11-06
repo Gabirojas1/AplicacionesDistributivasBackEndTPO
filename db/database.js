@@ -1,9 +1,15 @@
 const Sequelize = require('sequelize');
+const constants = require('../common/constants');
 
-let conn_string = "postgres://myhome:1234@backend-myhome.pg:5432/myhome";
-console.log(conn_string);
+const sequelize = new Sequelize(constants.PG_CONNECTION_STRING, {
+  logging: false,
+  dialect: 'postgres',
+  dialectOptions: {
+    ssl: constants.PG_ENABLE_SSL
+  }
+});
+console.log(constants.PG_CONNECTION_STRING);
 
-const sequelize = new Sequelize(conn_string, {logging: false});
 const db = {};
 
 db.Sequelize = Sequelize;

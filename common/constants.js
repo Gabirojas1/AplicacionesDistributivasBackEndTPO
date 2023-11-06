@@ -68,7 +68,6 @@ const CurrencyTypeEnum = {
   USD: "US$"
 };
 
-
 const ContenidoEnum = ["foto", "video", "audio"];
 
 const DEFAULT_PASSWORD = '1234'
@@ -93,8 +92,12 @@ const OTP_LENGTH = 6;
 function getKeyByValue(object, value) {
   return Object.keys(object).find(key => object[key] === value);
 }
+const PG_CONNECTION_STRING = process.env.PG_CONNECTION_STRING;
+const PG_ENABLE_SSL = false;
 
 module.exports = {
+  PG_CONNECTION_STRING,
+  PG_ENABLE_SSL,
   auth,
   mailoptions,
   RoleEnum,

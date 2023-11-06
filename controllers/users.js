@@ -16,20 +16,22 @@ const multimediaHelper = require("../helpers/multimedia");
 
 
 const signup = async (req, res = response) => {
+
+  let user = null;
   try {
     const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } = req.body;
 
-    if (!constants.RoleEnum.includes(userType)) {
+    if (userType != "Inmobiliaria") {
       return res
         .status(400)
         .jsonExtra({
           status: "error",
-          message: `'${userType} no es un tipo de usuario valido'`,
+          message: `'${userType} no es un tipo de usuario valido para registrarse a traves de este endpoint. Utilize Google Auth para registrarse como usuario.'`,
         });
     }
 
     // buscamos por mail
-    let user = await UserRepository.getUserByMail(mail);
+    user = await UserRepository.getUserByMail(mail);
     if (user != null) {
       return res.status(400).jsonExtra({
         ok: false,
@@ -66,7 +68,7 @@ const signup = async (req, res = response) => {
       text:
         `Hola! Te escribimos de myHome! \n
         Has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
-        Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token, // TODO! cloud: cambiar a link publico para demo
+        Sigue este link: http://aplicaciones-distribuidas-back-end-tpo.onrender.com/v1/users/confirm?token=` + token,
     };
 
     const result = await mailHelper.sendMail(mailOptions);
@@ -82,6 +84,11 @@ const signup = async (req, res = response) => {
     return res.status(500).jsonExtra({ status: "error", message: result.response });
 
   } catch (error) {
+
+    if (user != null) {
+        user.destroy();
+    }
+
     return res.status(500).jsonExtra({
       ok: false,
       message: "Unexpected error",
