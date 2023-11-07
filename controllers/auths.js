@@ -11,6 +11,8 @@ const mailHelper = require("../helpers/mail")
 const login = async (req, res = response) => {
   const { mail, password } = req.body;
 
+  console.log("login received");
+
   try {
     const usuario = await UserRepository.getUserByMailIncludePasswordField(mail);
 

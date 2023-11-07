@@ -34,7 +34,7 @@ const getOwnedProperties = async (req, res) => {
   // Get Logged-Sn User properties....
   // don't filter by status, get em' all.
   req.filterOwned = true;
-  req.params.userId = req.body.id;
+  req.query.userId = req.body.id;
 
   return await getProperties(req, res);
 };
