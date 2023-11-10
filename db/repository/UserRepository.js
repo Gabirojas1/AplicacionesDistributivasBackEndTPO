@@ -21,6 +21,7 @@ const signup = async(firstName, lastName, userType, password, mail, contactMail,
     }).then(res => {
         user = res;
     }).catch((error) => {
+        error.status = 550;
         console.error('Failed to insert data : ', error);
     });
 
@@ -48,6 +49,7 @@ const getUserByIdUsuario = async(uid) => {
     }).then(res => {
         user = res;
     }).catch((error) => {
+        error.status = 500;
         console.error('Failed to retrieve data : ', error);
     });
 
@@ -72,6 +74,7 @@ const getUserByMail = async(mail) => {
     }).then(res => {
         user = res;
     }).catch((error) => {
+        error.status = 500;
         console.error('Failed to retrieve data : ', error);
     });
 
@@ -96,6 +99,7 @@ const getUserByMailIncludePasswordField = async(mail) => {
     }).then(res => {
         user = res;
     }).catch((error) => {
+        error.status = 500;
         console.error('Failed to retrieve data : ', error);
     });
 
@@ -121,6 +125,7 @@ const confirmSignup = async(uid) => {
         await res.save();
         user = res;
     }).catch((error) => {
+        error.status = 500;
         console.error('Failed to update data : ', error);
     });
 
@@ -155,22 +160,6 @@ const genOTP = async(user, otp) => {
     user.reload({include: [{all: true, nested: true}]});
 };
 
-const updatePassword = async(uid, password) => {
-    try {
-
-        var query = `UPDATE users SET OTP = '', password = '${password}' WHERE id = '${uid}' `;
-        const records = await pg_pool.query(query);
-        if (records.rowCount >= 1) {
-
-            return true
-        } else {
-            return false;
-        }
-    } catch (error) {
-        return false;
-    }
-};
-
 /**
  * Creates or find User with the given data
  * @returns account created
@@ -192,6 +181,7 @@ const findOrCreate = async(firstName, lastName, userType, mail, photo, password,
     }).then(res => {
         user = res;
     }).catch((error) => {
+        error.status = 500;
         console.error('Failed to insert data : ', error);
     });
     
@@ -206,6 +196,5 @@ module.exports = {
     confirmSignup,
     updateUser,
     genOTP,
-    updatePassword,
     findOrCreate
 };

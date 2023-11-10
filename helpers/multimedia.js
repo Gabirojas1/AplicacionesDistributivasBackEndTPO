@@ -22,7 +22,7 @@ const uploadImage = async photo => {
     })
     .catch((err) => {
         console.log(err);
-        return res.status(500).jsonExtra({
+        return res.status(err.status ? err.status : 500).jsonExtra({
             ok: false,
             message: "Error inesperado al subir imagen a cloudinary.",
             error: err

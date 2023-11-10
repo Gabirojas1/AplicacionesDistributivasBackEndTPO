@@ -47,7 +47,7 @@ const login = async (req, res = response) => {
       token,
     });
   } catch (error) {
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Unexpected error",
       error: error
@@ -99,7 +99,7 @@ const forgotPassword = async (req, res) => {
     });
 
   } catch(error) {
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Error inesperado al enviar el OTP",
       error: error
@@ -135,7 +135,7 @@ const resetPassword = async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Error inesperado al validar OTP y cambiar contraseña",
       error: error

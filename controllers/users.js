@@ -81,7 +81,7 @@ const signup = async (req, res = response) => {
         });
     }
 
-    return res.status(500).jsonExtra({ status: "error", message: result.response });
+    return res.status(500).jsonExtra({ ok: false, status: "error", message: result.response });
 
   } catch (error) {
 
@@ -89,7 +89,7 @@ const signup = async (req, res = response) => {
         user.destroy();
     }
 
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Unexpected error",
       stack: error.stack,
@@ -127,7 +127,7 @@ const confirmSignup = async (req, res = response) => {
       return res.sendFile(path.resolve("public/signup-complete-success.html"));
     });
   } catch (error) {
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Unexpected error",
     });
@@ -155,7 +155,7 @@ const getUser = async (req, res) => {
       });
 
   } catch (error) {
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Unexpected error",
       stack: error.stack,
@@ -184,7 +184,7 @@ const getLoggedUser = async (req, res) => {
       });
 
   } catch (error) {
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Unexpected error",
       stack: error.stack,
@@ -223,19 +223,7 @@ const updateUser = async (req, res) => {
      // cloudinary (photo upload)
      let photo = req.files && req.files["photo"];
      if (photo) {
- 
-       await cloudinary.uploader.upload(photo.path, {
-           format: 'png', width: 200, height: 200, tags: [`${body.firstName}`, `${body.lastName}`, "myhome", "uade", "distribuidas", "app"]
-         }).then((image) => {
-           body.photo = image.url;
-         }).catch((err) => {
-           console.log(err);
-           return res.status(500).jsonExtra({
-             ok: false,
-             message: "Error inesperado al subir imagen a cloudinary.",
-             error: err
-           });
-         });
+      body.photo = await multimediaHelper.uploadImage(photo.path);
      }
 
     // password hash replacement
@@ -262,7 +250,7 @@ const updateUser = async (req, res) => {
   } catch (e) {
     return res
       .status(e.status ? e.status : 500)
-      .jsonExtra({ status: e.status, message: e.message });
+      .jsonExtra({ status: e.status ? e.status : 500, message: e.message });
   }
 };
 

@@ -214,9 +214,10 @@ const getProperties = async ({
 
 	await Property.findAll(findStatement).then(res => {
 		if (!res.length) {
-			const error = new Error("Ningún resultado encontrado para los filtros indicados.")
-			error.status = 404
-			throw error
+			const error = new Error("Ningún resultado encontrado para los filtros indicados");
+			error.msg = "Ningún resultado encontrado para los filtros indicados";
+			error.status = 404;
+			throw error;
 		} else {
 			result =  {
 				"code": "200",
@@ -226,10 +227,11 @@ const getProperties = async ({
 				"cantTotal": totalRecords,
 				"cantPage": Math.ceil(totalRecords/limit),
 				"data": res
-			}
+			};
 		}
 	}).catch((error) => {
-        throw error
+		error.status = error.status ? error.status : 500;
+        throw error;
 	})
 
 	return result
@@ -317,7 +319,9 @@ const addProperty = async (body) => {
 			}
 		})
 		.catch((error) => {
-			throw error
+			error.status = 500;
+			error.message = error;
+			throw error;
 		});
 
 	await result.save();
@@ -433,7 +437,9 @@ const updateProperty = async (property, body) => {
 					multiArray.push(res);
 				})
 				.catch((error) => {
-					throw error
+					error.status = 500;
+					error.message = error;
+					throw error;
 				});
 		});
 		await property.addMultimedia(multiArray);
@@ -476,7 +482,9 @@ const geocodeAddress = async (street_name, street_number, district, state, count
 			response = res;
 		})
 		.catch(error => {
-			console.log(error);
+			error.message = "Error al realizar geocodificación de dirección: " + error;
+			error.status = 500;
+			throw error;
 		});
 
 	return response;

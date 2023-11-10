@@ -18,10 +18,10 @@ const getProperties = async (req, res) => {
     let result = await PropertiesRepository.getProperties(params)
     
     return res.status(200).jsonExtra(result)
-  } catch (e) {
-    return res.status(e.status).jsonExtra({ 
-      "code": e.status,
-      "msg": e.message,
+  } catch (error) {
+    return res.status(error.status ? error.status : 500).jsonExtra({ 
+      "code": error.status ? error.status : 500,
+      "msg": error.message ? error.message : "Unexpected Error",
       "data": [] 
     })
 
@@ -31,12 +31,20 @@ const getProperties = async (req, res) => {
 // Metodo especifico para obtener propiedades del usuario logeado
 const getOwnedProperties = async (req, res) => {
 
-  // Get Logged-Sn User properties....
-  // don't filter by status, get em' all.
-  req.filterOwned = true;
-  req.query.userId = req.body.id;
+  try {
+    // Get Logged-Sn User properties....
+    // don't filter by status, get em' all.
+    req.filterOwned = true;
+    req.query.userId = req.body.id;
 
-  return await getProperties(req, res);
+    return await getProperties(req, res);
+  } catch (error) {
+    return res.status(error.status ? error.status : 500).jsonExtra({ 
+      "code": error.status ? error.status : 500,
+      "msg": error.message ? error.message : "Unexpected Error",
+      "data": [] 
+    })
+  }
 };
 
 // Usuario agrega property
@@ -100,7 +108,7 @@ const addProperty = async (req, res) => {
   } catch (e) {
     return res
       .status(e.status ? e.status : 500)
-      .jsonExtra({ status: e.status, message: e.message });
+      .jsonExtra({ status: e.status ? e.status : 500, message: e.message ? e.message : "Unexpected Error" });
   }
 };
 
@@ -175,7 +183,7 @@ const updateProperty = async (req, res) => {
   } catch (e) {
     return res
       .status(e.status ? e.status : 500)
-      .jsonExtra({ status: e.status, message: e.message });
+      .jsonExtra({ status: e.status ? e.status : 500, message: e.message ? e.message : "Unexpected Error" });
   }
 };
 
@@ -217,7 +225,7 @@ const deleteProperty = async (req, res) => {
   } catch (e) {
     return res
       .status(e.status ? e.status : 500)
-      .jsonExtra({ status: e.status, message: e.message });
+      .jsonExtra({ status: e.status ? e.status : 500, message: e.message ? e.message : "Unexpected Error" });
   }
 };
 
