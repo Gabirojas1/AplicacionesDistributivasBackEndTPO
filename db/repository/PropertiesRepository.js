@@ -9,6 +9,7 @@ const moment = require('moment');
 const axios = require('axios');
 const { response } = require('express');
 const Multimedia = require('../../models/Multimedia');
+const Favorite = require('../../models/Favorite');
 
 /**
 * Gets properties by filtering query
@@ -451,6 +452,14 @@ const updateProperty = async (property, body) => {
 
 // Elimina logicamente una propiedad existente
 const deleteProperty = async (property) => {
+	// TODO! eliminar favoritos logicamente
+
+	let favorites = await Favorite.findAll({where: {propertyId: property.id}})
+	favorites.forEach( async fav => {
+		fav.destroy();
+	});
+
+
 	property.status = constants.PropertyStateEnum.DESPUBLICADA;
 	property.save();
 	property.reload({include: [{all: true, nested: true}]});

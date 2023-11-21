@@ -3,6 +3,7 @@ const { response } = require("express");
 const bcrypt = require("bcrypt");
 const { generateJWT, verifyJWT } = require("../helpers/jwt");
 const UserRepository = require("../db/repository/UserRepository");
+const PropertiesRepository = require("../db/repository/PropertiesRepository");
 
 var constants = require("../common/constants");
 
@@ -12,6 +13,8 @@ const mailHelper = require("../helpers/mail");
 
 
 const multimediaHelper = require("../helpers/multimedia");
+const User = require("../models/User");
+const Favorite = require("../models/Favorite");
 
 
 
@@ -254,10 +257,157 @@ const updateUser = async (req, res) => {
   }
 };
 
+// obtiene favoritos del usuario loggeado
+const getFavorites = async (req, res) => {
+  try {
+
+    const userId = req.body.id;
+    let user = await UserRepository.getUserByIdUsuario(userId);
+    if (user == null) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
+      });
+    }
+
+    let favorites = await Favorite.findAll({
+      where: {userId: userId},
+    })
+
+    return res
+      .status(200)
+      .jsonExtra({
+        ok: true,
+        data: favorites
+      });
+    
+  } catch (error) {
+    return res.status(error.status ? error.status : 500).jsonExtra({
+      ok: false,
+      message: error.message ? error.message : "Error inespetado",
+      stack: error.stack,
+    });
+  }
+};
+
+// Agrega property en favoritos de usuario
+const addFavorite = async (req, res) => {
+  try {
+
+    const userId = req.body.id;
+    let user = await UserRepository.getUserByIdUsuario(userId);
+    if (user == null) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
+      });
+    }
+
+    let properties = await PropertiesRepository.getProperties({
+      propertyId: req.body.propertyId,
+      userId: req.body.id, // body.id siempre contiene el id del usuario loggeado
+      filterOwned: true
+    });
+
+    if (properties.length < 1) {
+      return res.status(401).jsonExtra({
+        status: "error",
+        message: "No se encontro la propiedad.",
+      });
+    }
+
+    let property = properties.data[0];
+
+    let fav = await Favorite.findOrCreate({
+      where: { userId: userId, propertyId: property.id },
+      defaults: {
+        userId: userId, propertyId: property.id
+      }
+    });
+
+    if(fav[0] != null) {
+      await user.addFavorite(fav[0]);
+
+      if (fav[1]) {
+        return res
+        .status(201)
+        .jsonExtra({
+          ok: true,
+          data: fav[0]
+        });
+      } else {
+        return res
+        .status(200)
+        .jsonExtra({
+          ok: true,
+          data: fav[0],
+          message: "la relacion ya existia"
+        });
+      } 
+    }
+
+    return res
+      .status(500)
+      .jsonExtra({
+        ok: false,
+        message: "No se pudo agregar a favoritos. Ya existia o error inesperado al crear la relación."
+      });
+    
+  } catch (error) {
+    return res.status(error.status ? error.status : 500).jsonExtra({
+      ok: false,
+      message: error.message ? error.message : "Error inespetado",
+      stack: error.stack,
+    });
+  }
+};
+
+// Elimina property de favoritos de usuario
+const deleteFavorite = async (req, res) => {
+  try {
+
+    const favoriteId = req.params.id;
+
+    let favorite = await Favorite.findOne({id: favoriteId});
+    if (favorite == null) {
+      return res
+      .status(404)
+      .jsonExtra({
+        ok: false,
+        message: "No existe un favorito con esa id:  " + favoriteId
+      });
+    }
+
+    // El favorito no le pertenece al usuario loggeado
+    if (favorite.userId != req.body.id) {
+
+    }
+
+    await favorite.destroy();
+    
+    return res
+      .status(200)
+      .jsonExtra({
+        ok: true,
+        message: "Favorito eliminado!"
+      });
+    
+  } catch (error) {
+    return res.status(error.status ? error.status : 500).jsonExtra({
+      ok: false,
+      message: error.message ? error.message : "Error inespetado",
+      stack: error.stack,
+    });
+  }
+};
+
 module.exports = {
   signup,
   confirmSignup,
   getLoggedUser,
   getUser,
-  updateUser
+  updateUser,
+  getFavorites,
+  addFavorite,
+  deleteFavorite
 };
