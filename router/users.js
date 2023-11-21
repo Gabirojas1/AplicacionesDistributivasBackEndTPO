@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { check } = require("express-validator");
-const { signup, confirmSignup, getLoggedUser, getUser, updateUser  } = require("../controllers/users");
+const { signup, confirmSignup, getLoggedUser, getUser, updateUser, addFavorite, getFavorites, deleteFavorite  } = require("../controllers/users");
 const { validateField } = require("../middlewares/fieldValidator");
 const checkAuth  = require("../middlewares/auth.js").checkAuth;
 
@@ -83,6 +83,28 @@ router.patch(
   ],
   checkAuth,
   updateUser
+);
+
+router.get(
+  "/favs",
+  checkAuth,
+  getFavorites
+);
+
+router.post(
+  "/favs",
+  [
+    check("propertyId", "El propertyId es obligatorio.").notEmpty(),
+    validateField,
+  ],
+  checkAuth,
+  addFavorite
+);
+
+router.delete(
+  "/favs/:id",
+  checkAuth,
+  deleteFavorite
 );
 
 module.exports = router;
