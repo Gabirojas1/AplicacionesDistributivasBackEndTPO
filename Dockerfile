@@ -8,6 +8,6 @@ FROM base as dev
 
 RUN npm install
 
-COPY . /
+COPY . /app
 
-CMD [ "node --inspect", "index.js" ]
+CMD [ "node", "index.js" ]

@@ -7,7 +7,7 @@ exports.decodeUserFromToken = async function decodeUserFromToken(
   res,
   next
 ) {
-  let token = req.get("Authorization") || req.query.token || req.body.token;
+  let token = req.get("Authorization") || req.get("authorization") || req.query.token || req.body.token;
   if (token) {
     token = token.replace("Bearer", "").replaceAll(" ", "");
 

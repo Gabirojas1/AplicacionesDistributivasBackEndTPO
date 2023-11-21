@@ -48,7 +48,7 @@ const token = req.headers.authorization
       tokenSend,
     });
   } catch (error) {
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Error: " + error,
     });

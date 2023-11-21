@@ -131,6 +131,7 @@ const Property = sq.define('property', {
           .then(res => {
             return res.property;
           }).catch((error) => {
+            error.status = 500;
             console.error('Failed to transition state : ', error);
           });
       }

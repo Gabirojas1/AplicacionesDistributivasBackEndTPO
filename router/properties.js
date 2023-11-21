@@ -103,6 +103,42 @@ router.patch("/",
 checkAuth,
 propertiesCtrl.updateProperty);
 
+// actualizar property
+router.put("/", 
+[
+
+  check("propertyType", "El tipo de propiedad debe ser Casa, Departamento, PH, Terreno o Local Comrecial").optional().isIn(Object.values(constants.PropertyTypeEnum)),
+  check("position", "La posición debe ser Frente, Contrafrente, Interno o Lateral").optional().isIn(Object.values(constants.PositionEnum)),
+  check("orientation", "La orientación debe ser N, S, E, O, SE, SO, NO, o NE").optional().isIn(Object.values(constants.OrientationEnum)),
+  check("antiquity", "La antiguedad debe ser un entero").optional().isInt(),
+  check("mtsCovered", "Los metros cubiertos debe ser un entero").optional().isInt(),
+  check("mtsHalfCovered", "Los metros semicubiertos debe ser un entero").optional().isInt(),
+  check("mtsUncovered", "Los metros descubiertos debe ser un entero").optional().isInt(),
+  check("numEnvironments", "El número de ambientes debe ser un entero").optional().isInt(),
+  check("numRooms", "El número de habitaciones debe ser un entero").optional().isInt(),
+  check("numBathrooms", "El número de baños debe ser un entero").optional().isInt(),
+  check("numCars", "El número de cocheras debe ser un entero").optional().isInt(),
+
+  // Validacion contract_types array
+  check("contract_types", "Los tipos de contrato deben ser un array de objetos").optional().isArray(),
+
+  check("contract_types.*.contractType", "El tipo de contrato es obligatorio para dar de alta un contrato de propiedad.").notEmpty(),
+  check("contract_types.*.contractType", "El tipo de contrato debe ser un tipo valido (e.g, Venta, Alquiler, Temporada).").isIn(Object.values(constants.ContractTypeEnum)),
+
+  check("contract_types.*.price", "El precio es obligatorio para dar de alta un tipo de contrato de propiedad.").notEmpty(),
+  check("contract_types.*.price", "El precio debe ser un valor de coma flotante.").isFloat(),
+
+  check("contract_types.*.expPrice", "Las expensas son obligatorias para dar de alta un tipo de contrato de propiedad.").notEmpty(),
+  check("contract_types.*.expPrice", "Las expensas deben ser un valor de coma flotante.").isFloat(),
+
+  check("contract_types.*.currency", "La moneda es obligatoria para dar de alta un tipo de contrato de propiedad.").notEmpty(),
+  check("contract_types.*.currency", "La moneda debe ser un tipo valido (e.g, AR$, US$).").isIn(Object.values(constants.CurrencyTypeEnum)),
+
+  validateField,
+],
+checkAuth,
+propertiesCtrl.updateProperty);
+
 
 // eliminar property
 router.delete("/", 
