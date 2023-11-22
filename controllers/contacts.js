@@ -33,24 +33,20 @@ const getContacts = async (req, res = response) => {
 
     // Usuario
     if (user.userType == "Usuario") {
-
       contacts = await Contacto.findAll({
         where: {
           userId: loggedUserId
         }
       })
-      // Inmobiliaria
-    } 
+    }
+    // Inmobiliaria
     else {
-
       contacts = await Contacto.findAll({
         where: {
           inmobiliariaId: loggedUserId
         }
       })
     }
-
-    
 
     return res.status(200).jsonExtra({
       ok: true,

@@ -369,7 +369,6 @@ const deleteFavorite = async (req, res) => {
   try {
 
     const favoriteId = req.params.id;
-
     let favorite = await Favorite.findOne({id: favoriteId});
     if (favorite == null) {
       return res
@@ -382,7 +381,12 @@ const deleteFavorite = async (req, res) => {
 
     // El favorito no le pertenece al usuario loggeado
     if (favorite.userId != req.body.id) {
-
+      return res
+      .status(401)
+      .jsonExtra({
+        ok: false,
+        message: "El favorito no te pertenece."
+      });
     }
 
     await favorite.destroy();
@@ -393,7 +397,6 @@ const deleteFavorite = async (req, res) => {
         ok: true,
         message: "Favorito eliminado!"
       });
-    
   } catch (error) {
     return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
