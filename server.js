@@ -49,6 +49,7 @@ class Server {
     this.app.use("/v1/properties", require("./router/properties"));
     this.app.use("/v1/users", require("./router/users"));
     this.app.use("/v1/contacts", require("./router/contacts"));
+    this.app.use("/v1/contracts", require("./router/contracts"));
   }
 
   async execute() {

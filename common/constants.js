@@ -31,6 +31,13 @@ const PropertyTypeEnum = {
   STOREFRONT: 'Local Comercial'
 };
 
+const ContractStatusEnum = {
+  INITIALIZED: 'Iniciado',
+  RESERVED: 'Reservado',
+  CONCRETIZED: 'Concretado',
+  FINALIZED: 'Finalizado'
+};
+
 const ContractTypeEnum = {
   RENT: 'Alquiler',
   SALE: 'Venta',
@@ -123,6 +130,7 @@ module.exports = {
   PropertyStateEnum,
   PropertyTypeEnum,
   ContenidoEnum,
+  ContractStatusEnum,
   ContractTypeEnum,
   ContractTypeStateEnum,
   ContactTypeEnum,

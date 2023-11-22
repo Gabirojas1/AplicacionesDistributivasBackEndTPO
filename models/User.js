@@ -9,6 +9,7 @@ const Location = require('./Location.js');
 const Multimedia = require('./Multimedia.js');
 const Favorite = require('./Favorite.js');
 const Contacto = require('./Contacto.js');
+const Contract = require('./Contract.js');
 
 const User = sq.define('user', {
   id: {
@@ -81,6 +82,7 @@ User.sync().then(async () => {
   await Multimedia.sync();
   await Favorite.sync();
   await Contacto.sync();
+  await Contract.sync();
 
   let latitude = -34.617047;
   let longitude = -58.3819187;
@@ -226,6 +228,9 @@ Property.belongsTo(Location, { foreignKey: 'locationId' });
 
 User.hasMany(Favorite, { foreignKey: 'userId' });
 User.hasMany(Contacto, { foreignKey: 'userId' });
+User.hasMany(Contract, { foreignKey: 'userId' });
+
+ContractType.hasMany(Contract, { foreignKey: 'contractTypeId' });
 
 
 module.exports = User;
