@@ -3,6 +3,7 @@ const { response } = require("express");
 const bcrypt = require("bcrypt");
 const { generateJWT, verifyJWT } = require("../helpers/jwt");
 const UserRepository = require("../db/repository/UserRepository");
+const PropertiesRepository = require("../db/repository/PropertiesRepository");
 
 var constants = require("../common/constants");
 
@@ -12,24 +13,28 @@ const mailHelper = require("../helpers/mail");
 
 
 const multimediaHelper = require("../helpers/multimedia");
+const User = require("../models/User");
+const Favorite = require("../models/Favorite");
 
 
 
 const signup = async (req, res = response) => {
+
+  let user = null;
   try {
     const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } = req.body;
 
-    if (!constants.RoleEnum.includes(userType)) {
+    if (userType != "Inmobiliaria") {
       return res
         .status(400)
         .jsonExtra({
           status: "error",
-          message: `'${userType} no es un tipo de usuario valido'`,
+          message: `'${userType} no es un tipo de usuario valido para registrarse a traves de este endpoint. Utilize Google Auth para registrarse como usuario.'`,
         });
     }
 
     // buscamos por mail
-    let user = await UserRepository.getUserByMail(mail);
+    user = await UserRepository.getUserByMail(mail);
     if (user != null) {
       return res.status(400).jsonExtra({
         ok: false,
@@ -47,7 +52,7 @@ const signup = async (req, res = response) => {
     }
 
     // cloudinary (photo upload
-    let photo = req.files["photo"].path;
+    let photo = req.files && req.files["photo"] && req.files["photo"].path;
     if (photo) {
       photo = await multimediaHelper.uploadImage(photo);
     }
@@ -66,7 +71,7 @@ const signup = async (req, res = response) => {
       text:
         `Hola! Te escribimos de myHome! \n
         Has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
-        Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token, // TODO! cloud: cambiar a link publico para demo
+        Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token,
     };
 
     const result = await mailHelper.sendMail(mailOptions);
@@ -79,10 +84,15 @@ const signup = async (req, res = response) => {
         });
     }
 
-    return res.status(500).jsonExtra({ status: "error", message: result.response });
+    return res.status(500).jsonExtra({ ok: false, status: "error", message: result.response });
 
   } catch (error) {
-    return res.status(500).jsonExtra({
+
+    if (user != null) {
+        user.destroy();
+    }
+
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Unexpected error",
       stack: error.stack,
@@ -120,7 +130,7 @@ const confirmSignup = async (req, res = response) => {
       return res.sendFile(path.resolve("public/signup-complete-success.html"));
     });
   } catch (error) {
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Unexpected error",
     });
@@ -148,7 +158,7 @@ const getUser = async (req, res) => {
       });
 
   } catch (error) {
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Unexpected error",
       stack: error.stack,
@@ -177,7 +187,7 @@ const getLoggedUser = async (req, res) => {
       });
 
   } catch (error) {
-    return res.status(500).jsonExtra({
+    return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: "Unexpected error",
       stack: error.stack,
@@ -214,21 +224,9 @@ const updateUser = async (req, res) => {
     }
 
      // cloudinary (photo upload)
-     let photo = req.files ? req.files["photo"] : undefined;
+     let photo = req.files && req.files["photo"];
      if (photo) {
- 
-       await cloudinary.uploader.upload(photo.path, {
-           format: 'png', width: 200, height: 200, tags: [`${body.firstName}`, `${body.lastName}`, "myhome", "uade", "distribuidas", "app"]
-         }).then((image) => {
-           body.photo = image.url;
-         }).catch((err) => {
-           console.log(err);
-           return res.status(500).jsonExtra({
-             ok: false,
-             message: "Error inesperado al subir imagen a cloudinary.",
-             error: err
-           });
-         });
+      body.photo = await multimediaHelper.uploadImage(photo.path);
      }
 
     // password hash replacement
@@ -254,8 +252,157 @@ const updateUser = async (req, res) => {
     });
   } catch (e) {
     return res
-      .status(e.statusCode ? e.statusCode : 500)
-      .jsonExtra({ status: e.name, message: e.message });
+      .status(e.status ? e.status : 500)
+      .jsonExtra({ status: e.status ? e.status : 500, message: e.message });
+  }
+};
+
+// obtiene favoritos del usuario loggeado
+const getFavorites = async (req, res) => {
+  try {
+
+    const userId = req.body.id;
+    let user = await UserRepository.getUserByIdUsuario(userId);
+    if (user == null) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
+      });
+    }
+
+    let favorites = await Favorite.findAll({
+      where: {userId: userId},
+    })
+
+    return res
+      .status(200)
+      .jsonExtra({
+        ok: true,
+        data: favorites
+      });
+    
+  } catch (error) {
+    return res.status(error.status ? error.status : 500).jsonExtra({
+      ok: false,
+      message: error.message ? error.message : "Error inespetado",
+      stack: error.stack,
+    });
+  }
+};
+
+// Agrega property en favoritos de usuario
+const addFavorite = async (req, res) => {
+  try {
+
+    const userId = req.body.id;
+    let user = await UserRepository.getUserByIdUsuario(userId);
+    if (user == null) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
+      });
+    }
+
+    let properties = await PropertiesRepository.getProperties({
+      propertyId: req.body.propertyId,
+      userId: req.body.id, // body.id siempre contiene el id del usuario loggeado
+      filterOwned: true
+    });
+
+    if (properties.length < 1) {
+      return res.status(401).jsonExtra({
+        status: "error",
+        message: "No se encontro la propiedad.",
+      });
+    }
+
+    let property = properties.data[0];
+
+    let fav = await Favorite.findOrCreate({
+      where: { userId: userId, propertyId: property.id },
+      defaults: {
+        userId: userId, propertyId: property.id
+      }
+    });
+
+    if(fav[0] != null) {
+      
+
+      if (fav[1]) {
+        await user.addFavorite(fav[0]);
+
+        return res
+        .status(201)
+        .jsonExtra({
+          ok: true,
+          data: fav[0]
+        });
+      } else {
+        return res
+        .status(200)
+        .jsonExtra({
+          ok: true,
+          message: "Ya posees la propiedad en favoritos.",
+          data: fav[0],
+        });
+      } 
+    }
+
+    return res
+      .status(500)
+      .jsonExtra({
+        ok: false,
+        message: "No se pudo agregar a favoritos. Ya existia o error inesperado al crear la relación."
+      });
+    
+  } catch (error) {
+    return res.status(error.status ? error.status : 500).jsonExtra({
+      ok: false,
+      message: error.message ? error.message : "Error inespetado",
+      stack: error.stack,
+    });
+  }
+};
+
+// Elimina property de favoritos de usuario
+const deleteFavorite = async (req, res) => {
+  try {
+
+    const favoriteId = req.params.id;
+    let favorite = await Favorite.findOne({id: favoriteId});
+    if (favorite == null) {
+      return res
+      .status(404)
+      .jsonExtra({
+        ok: false,
+        message: "No existe un favorito con esa id:  " + favoriteId
+      });
+    }
+
+    // El favorito no le pertenece al usuario loggeado
+    if (favorite.userId != req.body.id) {
+      return res
+      .status(401)
+      .jsonExtra({
+        ok: false,
+        message: "El favorito no te pertenece."
+      });
+    }
+
+    await favorite.destroy();
+    
+    return res
+      .status(200)
+      .jsonExtra({
+        ok: true,
+        message: "Favorito eliminado!"
+      });
+  } catch (error) {
+    return res.status(error.status ? error.status : 500).jsonExtra({
+      ok: false,
+      message: error.message ? error.message : "Error inespetado",
+      stack: error.stack,
+    });
   }
 };
 
@@ -264,5 +411,8 @@ module.exports = {
   confirmSignup,
   getLoggedUser,
   getUser,
-  updateUser
+  updateUser,
+  getFavorites,
+  addFavorite,
+  deleteFavorite
 };

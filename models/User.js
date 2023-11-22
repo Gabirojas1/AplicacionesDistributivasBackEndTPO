@@ -7,6 +7,8 @@ const { PropertyTypeEnum, ContractTypeEnum, CurrencyTypeEnum, UserTypeEnum, User
 const ContractType = require('./ContractType.js');
 const Location = require('./Location.js');
 const Multimedia = require('./Multimedia.js');
+const Favorite = require('./Favorite.js');
+const Contacto = require('./Contacto.js');
 
 const User = sq.define('user', {
   id: {
@@ -77,6 +79,8 @@ User.sync().then(async () => {
   await Property.sync();
   await ContractType.sync();
   await Multimedia.sync();
+  await Favorite.sync();
+  await Contacto.sync();
 
   let latitude = -34.617047;
   let longitude = -58.3819187;
@@ -215,12 +219,14 @@ User.hasMany(Property, { foreignKey: 'userId' });
 
 // TODO! cambiar a hasOne
 Property.hasMany(ContractType, { foreignKey: 'propertyId' });
-
-
 Property.hasMany(Multimedia, { foreignKey: 'propertyId' });
+Property.hasMany(Contacto, { foreignKey: 'propertyId' });
 
 Location.hasMany(Property, { foreignKey: 'locationId' });
 Property.belongsTo(Location, { foreignKey: 'locationId' });
+
+User.hasMany(Favorite, { foreignKey: 'userId' });
+User.hasMany(Contacto, { foreignKey: 'userId' });
 
 
 module.exports = User;

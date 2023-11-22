@@ -10,6 +10,7 @@ const Sequelize = require('sequelize');
 const axios = require('axios');
 const { response } = require('express');
 const Multimedia = require('../../models/Multimedia');
+const Favorite = require('../../models/Favorite');
 
 /**
 * Gets properties by filtering query
@@ -223,9 +224,10 @@ const getProperties = async ({
 
 	await Property.findAll(findStatement).then(res => {
 		if (!res.length) {
-			const error = new Error("Ningún resultado encontrado para los filtros indicados.")
-			error.status = 404
-			throw error
+			const error = new Error("Ningún resultado encontrado para los filtros indicados");
+			error.msg = "Ningún resultado encontrado para los filtros indicados";
+			error.status = 404;
+			throw error;
 		} else {
 			result =  {
 				"code": "200",
@@ -235,10 +237,11 @@ const getProperties = async ({
 				"cantTotal": totalRecords,
 				"cantPage": Math.ceil(totalRecords/limit),
 				"data": res
-			}
+			};
 		}
 	}).catch((error) => {
-        throw error
+		error.status = error.status ? error.status : 500;
+        throw error;
 	})
 
 	return result
@@ -302,39 +305,37 @@ const addProperty = async (body) => {
 						cloneLoc.latitude = response.data.results[0].geometry.location.lat;
 						cloneLoc.longitude = response.data.results[0].geometry.location.lng;
 					}
-				} else {
-
-					aux = await Location.findOrCreate({
-						where: { id: cloneLoc.id },
-						defaults: cloneLoc
-					});
-
-					result.locationId = aux[0].id;
-					result.location = aux[0];
-					result.setLocation(aux[0]);
 				}
+
+				aux = await Location.findOrCreate({
+					where: { id: cloneLoc.id },
+					defaults: cloneLoc
+				});
+
+				result.locationId = aux[0].id;
+				result.location = aux[0];
+				result.setLocation(aux[0]);
+				
 
 				// TODO! handle API error
 			}
 
 			// Multimedia / Photos
 			if (body.photos) {
-
 				await body.photos.forEach(async photo => {
-
 					let mlt = await Multimedia.create({propertyId: res.id, url: photo.url})
 					await res.addMultimedia(mlt);
-
 				});
-
 			}
 		})
 		.catch((error) => {
-			throw error
+			error.status = 500;
+			error.message = error;
+			throw error;
 		});
 
 	await result.save();
-	await result.reload();
+	await result.reload({include: [{all: true, nested: true}]});
 	return result;
 };
 
@@ -348,6 +349,7 @@ const updateProperty = async (property, body) => {
 	delete clone.rating;
 	delete clone.contract_types;
 	delete clone.location;
+	delete clone.photos;
 
 	await property.update(clone);
 
@@ -373,18 +375,18 @@ const updateProperty = async (property, body) => {
 				cloneLoc.latitude = response.data.results[0].geometry.location.lat;
 				cloneLoc.longitude = response.data.results[0].geometry.location.lng;
 			}
-		} else {
-
-			aux = await Location.findOrCreate({
-				where: { id: cloneLoc.id },
-				defaults: cloneLoc
-			});
-
-			property.locationId = aux[0].id;
-			property.location = aux[0];
-			property.setLocation(aux[0]);
 		}
+
+		aux = await Location.findOrCreate({
+			where: { id: cloneLoc.id },
+			defaults: cloneLoc
+		});
+
+		property.locationId = aux[0].id;
+		property.location = aux[0];
+		property.setLocation(aux[0]);
 		
+
 		// TODO! handle API error
 	}
 
@@ -428,15 +430,48 @@ const updateProperty = async (property, body) => {
 		});
 	}
 
+	// Multimedia / Photos
+	if (body.photos) {
+
+		// reemplazo total de imagenes
+		await Multimedia.destroy({
+			where: {
+			  propertyId: property.id
+			},
+		  });
+
+		let multiArray = [];
+		await body.photos.forEach(photo => {
+			Multimedia.create({ propertyId: property.id, url: photo.url })
+				.then(res => {
+					multiArray.push(res);
+				})
+				.catch((error) => {
+					error.status = 500;
+					error.message = error;
+					throw error;
+				});
+		});
+		await property.addMultimedia(multiArray);
+	}
 	await property.save();
+	await property.reload({include: [{all: true, nested: true}]});
 	return property;
 };
 
 // Elimina logicamente una propiedad existente
 const deleteProperty = async (property) => {
+	// TODO! eliminar favoritos logicamente
+
+	let favorites = await Favorite.findAll({where: {propertyId: property.id}})
+	favorites.forEach( async fav => {
+		fav.destroy();
+	});
+
+
 	property.status = constants.PropertyStateEnum.DESPUBLICADA;
 	property.save();
-	property.reload();
+	property.reload({include: [{all: true, nested: true}]});
 };
 
 /**
@@ -477,7 +512,9 @@ const geocodeAddress = async (street_name, street_number, district, state, count
 			response = res;
 		})
 		.catch(error => {
-			console.log(error);
+			error.message = "Error al realizar geocodificación de dirección: " + error;
+			error.status = 500;
+			throw error;
 		});
 
 	return response;

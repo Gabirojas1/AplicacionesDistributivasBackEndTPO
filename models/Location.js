@@ -26,7 +26,7 @@ const Location = sq.define('location', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  departament: {
+  department: {
     type: DataTypes.STRING,
     defaultValue: "N/A"
   },

@@ -21,6 +21,7 @@ const signup = async(firstName, lastName, userType, password, mail, contactMail,
     }).then(res => {
         user = res;
     }).catch((error) => {
+        error.status = 550;
         console.error('Failed to insert data : ', error);
     });
 
@@ -48,6 +49,7 @@ const getUserByIdUsuario = async(uid) => {
     }).then(res => {
         user = res;
     }).catch((error) => {
+        error.status = 500;
         console.error('Failed to retrieve data : ', error);
     });
 
@@ -72,6 +74,7 @@ const getUserByMail = async(mail) => {
     }).then(res => {
         user = res;
     }).catch((error) => {
+        error.status = 500;
         console.error('Failed to retrieve data : ', error);
     });
 
@@ -96,6 +99,7 @@ const getUserByMailIncludePasswordField = async(mail) => {
     }).then(res => {
         user = res;
     }).catch((error) => {
+        error.status = 500;
         console.error('Failed to retrieve data : ', error);
     });
 
@@ -121,6 +125,7 @@ const confirmSignup = async(uid) => {
         await res.save();
         user = res;
     }).catch((error) => {
+        error.status = 500;
         console.error('Failed to update data : ', error);
     });
 
@@ -144,7 +149,7 @@ const updateUser = async (user, body) => {
     // TODO! agregar associations 
 	await user.update(clone);
 	await user.save();
-    await user.reload();
+    await user.reload({include: [{all: true, nested: true}]});
 	return user;
 };
 
@@ -152,23 +157,35 @@ const updateUser = async (user, body) => {
 const genOTP = async(user, otp) => {
     user.otp = otp;
     user.save();
-    user.reload();
+    user.reload({include: [{all: true, nested: true}]});
 };
 
-const updatePassword = async(uid, password) => {
-    try {
-
-        var query = `UPDATE users SET OTP = '', password = '${password}' WHERE id = '${uid}' `;
-        const records = await pg_pool.query(query);
-        if (records.rowCount >= 1) {
-
-            return true
-        } else {
-            return false;
+/**
+ * Creates or find User with the given data
+ * @returns account created
+ */
+const findOrCreate = async(firstName, lastName, userType, mail, photo, password, status) => {
+    let user = null; 
+    
+    await User.findOrCreate({
+        where: {mail: mail},
+        defaults:{
+            firstName: firstName,
+            lastName: lastName, 
+            userType: userType,
+            mail: mail,
+            photo: photo, 
+            password: password,
+            status: status
         }
-    } catch (error) {
-        return false;
-    }
+    }).then(res => {
+        user = res;
+    }).catch((error) => {
+        error.status = 500;
+        console.error('Failed to insert data : ', error);
+    });
+    
+    return user[0];
 };
 
 module.exports = {
@@ -179,5 +196,5 @@ module.exports = {
     confirmSignup,
     updateUser,
     genOTP,
-    updatePassword,
+    findOrCreate
 };

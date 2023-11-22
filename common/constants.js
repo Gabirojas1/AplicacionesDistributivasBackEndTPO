@@ -37,6 +37,11 @@ const ContractTypeEnum = {
   SEASON: 'Temporada',
 };
 
+const ContactTypeEnum = {
+  VISIT: 'Visita',
+  QUESTION: 'Pregunta'
+};
+
 const OrientationEnum = {
   N: 'N',
   S: 'S',
@@ -63,19 +68,31 @@ const ContractTypeStateEnum = {
   FINALIZED: "Finalized"
 };
 
+const ContactTypeStateEnum = {
+  SENT: "Enviado",
+  ACCEPTED: "Aceptado",
+  NEW_PROPOSAL: "Nueva_Propuesta",
+  REJECTED: "Rechazado"
+};
+
+const ContactTimeTypesEnum = {
+  AM: "AM",
+  PM: "PM"
+};
+
 const CurrencyTypeEnum = {
   ARS: "AR$",
   USD: "US$"
 };
 
-
 const ContenidoEnum = ["foto", "video", "audio"];
 
-
+const DEFAULT_PASSWORD = '1234'
 
 const auth = {
   type: "OAuth2",
   user: "gaxelac@gmail.com",
+  webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
   clientId: process.env.GMAIL_API_KEY,
   clientSecret: process.env.GMAIL_API_SECRET,
   refreshToken: process.env.GMAIL_API_REFRESH_TOKEN,
@@ -92,8 +109,12 @@ const OTP_LENGTH = 6;
 function getKeyByValue(object, value) {
   return Object.keys(object).find(key => object[key] === value);
 }
+const PG_CONNECTION_STRING = process.env.PG_CONNECTION_STRING;
+const PG_ENABLE_SSL = false;
 
 module.exports = {
+  PG_CONNECTION_STRING,
+  PG_ENABLE_SSL,
   auth,
   mailoptions,
   RoleEnum,
@@ -104,6 +125,9 @@ module.exports = {
   ContenidoEnum,
   ContractTypeEnum,
   ContractTypeStateEnum,
+  ContactTypeEnum,
+  ContactTypeStateEnum,
+  ContactTimeTypesEnum,
   CurrencyTypeEnum,
   OrientationEnum,
   PositionEnum,
@@ -111,5 +135,6 @@ module.exports = {
   defaultProfileGuestImage: "http://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894991/dohnmb6blyd2ei1bjha7.png",
   defaultProfileStudentImage: "https://res.cloudinary.com/dvjdc3ssy/image/upload/v1668894850/rjhj017czkwubzqiw9uu.png",
   OTP_LENGTH,
-  getKeyByValue
+  getKeyByValue,
+  DEFAULT_PASSWORD
 };

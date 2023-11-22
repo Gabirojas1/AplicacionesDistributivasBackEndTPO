@@ -19,12 +19,36 @@ class Server {
     this.app.use(express.static(path.resolve(__dirname, "../public")));
     // Cors
     this.app.use(cors());
+
+    // Add headers before the routes are defined
+    this.app.use(function (req, res, next) {
+
+      // Website you wish to allow to connect
+      res.setHeader('Access-Control-Allow-Origin', '*');
+
+      // Request methods you wish to allow
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+      // Request headers you wish to allow
+      res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization, authorization, Accept');
+
+      // Set to true if you need the website to include cookies in the requests sent
+      // to the API (e.g. in case you use sessions)
+      //res.setHeader('Access-Control-Allow-Credentials', true);
+
+      // Pass to next layer of middleware
+      next();
+    });
+
+
     // Body Parser
     this.app.use(express.json());
     this.app.use(formData.parse());
     this.app.use("/v1/auths", require("./router/auths"));
+    this.app.use("/v1/authGoogle", require("./router/authGoogle"));
     this.app.use("/v1/properties", require("./router/properties"));
     this.app.use("/v1/users", require("./router/users"));
+    this.app.use("/v1/contacts", require("./router/contacts"));
   }
 
   async execute() {
