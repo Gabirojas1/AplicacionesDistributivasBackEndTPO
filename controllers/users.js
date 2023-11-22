@@ -326,9 +326,11 @@ const addFavorite = async (req, res) => {
     });
 
     if(fav[0] != null) {
-      await user.addFavorite(fav[0]);
+      
 
       if (fav[1]) {
+        await user.addFavorite(fav[0]);
+
         return res
         .status(201)
         .jsonExtra({
@@ -340,8 +342,8 @@ const addFavorite = async (req, res) => {
         .status(200)
         .jsonExtra({
           ok: true,
+          message: "Ya posees la propiedad en favoritos.",
           data: fav[0],
-          message: "la relacion ya existia"
         });
       } 
     }
