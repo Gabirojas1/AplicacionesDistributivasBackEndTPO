@@ -37,6 +37,11 @@ const ContractTypeEnum = {
   SEASON: 'Temporada',
 };
 
+const ContactTypeEnum = {
+  VISIT: 'Visita',
+  QUESTION: 'Pregunta'
+};
+
 const OrientationEnum = {
   N: 'N',
   S: 'S',
@@ -61,6 +66,18 @@ const ContractTypeStateEnum = {
   RESERVED: "Reserved",
   COMPLETED: "Completed",
   FINALIZED: "Finalized"
+};
+
+const ContactTypeStateEnum = {
+  SENT: "Enviado",
+  ACCEPTED: "Aceptado",
+  NEW_PROPOSAL: "Nueva_Propuesta",
+  REJECTED: "Rechazado"
+};
+
+const ContactTimeTypesEnum = {
+  AM: "AM",
+  PM: "PM"
 };
 
 const CurrencyTypeEnum = {
@@ -108,6 +125,9 @@ module.exports = {
   ContenidoEnum,
   ContractTypeEnum,
   ContractTypeStateEnum,
+  ContactTypeEnum,
+  ContactTypeStateEnum,
+  ContactTimeTypesEnum,
   CurrencyTypeEnum,
   OrientationEnum,
   PositionEnum,

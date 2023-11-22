@@ -48,6 +48,7 @@ class Server {
     this.app.use("/v1/authGoogle", require("./router/authGoogle"));
     this.app.use("/v1/properties", require("./router/properties"));
     this.app.use("/v1/users", require("./router/users"));
+    this.app.use("/v1/contacts", require("./router/contacts"));
   }
 
   async execute() {
