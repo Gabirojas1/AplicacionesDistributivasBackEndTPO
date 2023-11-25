@@ -33,35 +33,28 @@ const getContracts = async (req, res = response) => {
       let findStatement = {
         where: {
           contractorUserId: loggedUserId
-        }
+        },
+        include: [
+          {
+            model: ContractType,
+            attributes: ['id'],  // Solo mostrar el id del contract type
+            required: true,
+            include: [{
+              model: Property,
+              attributes: ['id'],  // Solo mostrar el id de la propiedad
+              required: true,
+            }
+            ],
+          },
+        ]
       };
 
       // Si se informa propertyId, obtener el contrato perteneciente al usuario y para esa propiedad
       let propertyId = req.query.propertyId;
-      if(propertyId) {
-
-        findStatement = {
-          where: {
-            contractorUserId: loggedUserId
-          },
-          include: [
-            {
-              model: ContractType,
-              attributes: ['id'],  // Solo mostrar el id del contract type
-              required: true,
-              include: [{
-                model: Property,
-                attributes: ['id'],  // Solo mostrar el id de la propiedad
-                where: {
-                  id: propertyId
-                },
-                required: true,
-              }
-              ],
-            },
-          ]
+      if (propertyId) {
+        findStatement.include[0].include[0].where = {
+          id: propertyId
         };
-
       }
 
       contracts = await Contract.findAll(findStatement)
@@ -69,30 +62,37 @@ const getContracts = async (req, res = response) => {
     // Inmobiliaria
     else {
 
-      // TODO! filtro por propertyId
-
       // Obtener todos los contratos que le corresponden a la inmobiliaria loggeada.
       // SELECT c.*, ct.id, p.id FROM contracts c 
       // INNER JOIN contract_types ct ON ct.id = c.contractTypeId
       // INNER JOIN properties p ON p.id = ct.propertyId
       // WHERE p.userId = {loggedUserId};
-      contracts = await Contract.findAll({
+      let findStatement = {
         include: [
           {
             model: ContractType,
             attributes: ['id'], // Solo mostrar el id del contract_type
+            required: true,
             include: [{
               model: Property,
               attributes: ['id'],  // Solo mostrar el id de la propiedad
+              required: true,
               where: {
                 userId: loggedUserId
               },
             }
             ],
-            required: false,
           },
         ]
-      })
+      };
+
+      // Si se informa propertyId, obtener todos los contratos de la propiedad
+      let propertyId = req.query.propertyId;
+      if (propertyId) {
+        findStatement.include[0].include[0].where["id"] = propertyId;
+      }
+
+      contracts = await Contract.findAll(findStatement)
     }
 
     if (contracts.length < 1) {
