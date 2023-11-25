@@ -1,25 +1,125 @@
 const { response } = require("express");
-const bcrypt = require("bcrypt");
-const { generateJWT } = require("../helpers/jwt");
 const UserRepository = require("../db/repository/UserRepository");
-
-const { Op } = require('sequelize');
-
-const PropertiesRepository = require("../db/repository/PropertiesRepository");
-
+const { Sequelize, Op } = require('sequelize');
 var constants = require("../common/constants");
-
-const mailHelper = require("../helpers/mail");
 const Contacto = require("../models/Contacto");
-const Property = require("../models/User");
+const Property = require("../models/Property");
 const ContractType = require("../models/ContractType");
 const Contract = require("../models/Contract");
 
-
-// Obtiene contactos de inmobiliaria o usuario loggeado.
-// Inmobiliaria: obtiene los contactos que recibieron todas sus propiedades.
-// Usuario: obtiene todos los contactos que envio a inmobiliarias.
+// Obtiene los contratos de inmobiliaria o usuario loggeado.
+// Inmobiliaria: obtiene los contratos que recibieron todas sus propiedades.
+// Usuario: obtiene todos los contratos que envio a inmobiliarias.
 const getContracts = async (req, res = response) => {
+
+  try {
+
+    // validar usuario existente
+    const loggedUserId = req.body.id;
+    let user = await UserRepository.getUserByIdUsuario(loggedUserId);
+    if (user == null) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
+      });
+    }
+
+    let contracts = [];
+
+    // Usuario
+    if (user.userType == "Usuario") {
+
+      // el usuario contratante debe ser el usuario loggeado
+      let findStatement = {
+        where: {
+          contractorUserId: loggedUserId
+        }
+      };
+
+      // Si se informa propertyId, obtener el contrato perteneciente al usuario y para esa propiedad
+      let propertyId = req.query.propertyId;
+      if(propertyId) {
+
+        findStatement = {
+          where: {
+            contractorUserId: loggedUserId
+          },
+          include: [
+            {
+              model: ContractType,
+              attributes: ['id'],  // Solo mostrar el id del contract type
+              required: true,
+              include: [{
+                model: Property,
+                attributes: ['id'],  // Solo mostrar el id de la propiedad
+                where: {
+                  id: propertyId
+                },
+                required: true,
+              }
+              ],
+            },
+          ]
+        };
+
+      }
+
+      contracts = await Contract.findAll(findStatement)
+    }
+    // Inmobiliaria
+    else {
+
+      // TODO! filtro por propertyId
+
+      // Obtener todos los contratos que le corresponden a la inmobiliaria loggeada.
+      // SELECT c.*, ct.id, p.id FROM contracts c 
+      // INNER JOIN contract_types ct ON ct.id = c.contractTypeId
+      // INNER JOIN properties p ON p.id = ct.propertyId
+      // WHERE p.userId = {loggedUserId};
+      contracts = await Contract.findAll({
+        include: [
+          {
+            model: ContractType,
+            attributes: ['id'], // Solo mostrar el id del contract_type
+            include: [{
+              model: Property,
+              attributes: ['id'],  // Solo mostrar el id de la propiedad
+              where: {
+                userId: loggedUserId
+              },
+            }
+            ],
+            required: false,
+          },
+        ]
+      })
+    }
+
+    if (contracts.length < 1) {
+      return res.status(404).jsonExtra({
+        ok: true,
+        message: "No se encontraron resultados",
+        data: contracts
+      });
+    }
+
+    return res.status(200).jsonExtra({
+      ok: true,
+      data: contracts
+    });
+
+  } catch(error) {
+    return res.status(error.status ? error.status : 500).jsonExtra({
+      ok: false,
+      message: error.message ? error.message : "Error inesperado al obtener  los contactos",
+      error: error
+    });
+  }
+};
+
+// Obtiene contrato por Id, solo puede ser obtenido por usuarios loggeados
+// y solo si son alguna de las dos partes involucradas en el contrato (Inmobiliaria o Usuario)
+const getContractsById = async (req, res = response) => {
   const uid = req.body.id;
   try {
 
@@ -66,7 +166,8 @@ const getContracts = async (req, res = response) => {
   }
 };
 
-// Metodo para iniciar un contrato en estado "Iniciado" 
+// Metodo para iniciar un contrato usuario->propiedad en estado "Iniciado".
+// Solo puede ser usada por usuarios, no inmobiliarias.
 const addContract = async (req, res) => {
   try {
 
@@ -106,7 +207,7 @@ const addContract = async (req, res) => {
 
     let result = await Contract.findOne({
       where: {
-        userId: loggedUserId,
+        contractorUserId: loggedUserId,
         contractTypeId: contractTypeId,
         status: {
           [Op.in]: [
@@ -119,10 +220,11 @@ const addContract = async (req, res) => {
     });
 
     // No existe ningun contrato vigente
+    // TODO! enviar email a inmobiliaria avisandole
     if (result == null) {
 
       await Contract.create({
-        userId: loggedUserId,
+        contractorUserId: loggedUserId,
         contractTypeId: contractTypeId,
       })
         .then(async created => {
@@ -133,11 +235,6 @@ const addContract = async (req, res) => {
             message: "Se genero el contrato.",
             data: created,
           });
-        })
-        .catch((error) => {
-          error.status = 500;
-          error.message = error;
-          throw error;
         });
     } else {
       // Existe un contrato vigente
@@ -150,14 +247,13 @@ const addContract = async (req, res) => {
   } catch(error) {
     return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
-      message: error.message ? error.message : "Error inesperado al dar de alta el contacto",
+      message: error.message ? error.message : "Error inesperado al dar de alta el contrato.",
       error: error
     });
   }
 };
 
-// Metodo de actualizacion de contacto usado por inmobiliarias y usuarios
-// La inmobiliaria y/o usuario podra aceptar, rechazar o proponer una nueva fecha y horario una vez enviado
+// Metodo 
 const patchContract = async (req, res) => {
   try {
 
@@ -188,6 +284,7 @@ const patchContract = async (req, res) => {
 
 module.exports = {
   getContracts,
+  getContractsById,
   addContract,
   patchContract
 };

@@ -220,6 +220,8 @@ User.hasMany(Property, { foreignKey: 'userId' });
 
 // TODO! cambiar a hasOne
 Property.hasMany(ContractType, { foreignKey: 'propertyId' });
+ContractType.belongsTo(Property, { foreignKey: 'propertyId' })
+
 Property.hasMany(Multimedia, { foreignKey: 'propertyId' });
 Property.hasMany(Contacto, { foreignKey: 'propertyId' });
 
@@ -228,9 +230,10 @@ Property.belongsTo(Location, { foreignKey: 'locationId' });
 
 User.hasMany(Favorite, { foreignKey: 'userId' });
 User.hasMany(Contacto, { foreignKey: 'userId' });
-User.hasMany(Contract, { foreignKey: 'userId' });
+User.hasMany(Contract, { foreignKey: 'contractorUserId' });
+Contract.belongsTo(User, { foreignKey: 'contractorUserId' })
 
 ContractType.hasMany(Contract, { foreignKey: 'contractTypeId' });
-
+Contract.belongsTo(ContractType, { foreignKey: 'contractTypeId' })
 
 module.exports = User;

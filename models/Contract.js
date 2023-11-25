@@ -4,12 +4,12 @@ const { sq } = require('../db/database');
 const constants = require('../common/constants');
 
 const Contract = sq.define('contract', {
-  id: {
+  contractId: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     primaryKey: true
   },
-  userId: {
+  contractorUserId: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
