@@ -2,8 +2,6 @@ require("dotenv").config();
 
 const SALT_ROUNDS = 6;
 
-const RoleEnum = ["Usuario", "Inmobiliaria"];
-
 const UserTypeEnum = {
   INMOBILIARIA: 'Inmobiliaria',
   USUARIO: 'Usuario',
@@ -35,7 +33,12 @@ const ContractStatusEnum = {
   INITIALIZED: 'Iniciado',
   RESERVED: 'Reservado',
   CONCRETIZED: 'Concretado',
-  FINALIZED: 'Finalizado'
+  CANCELLED: 'Cancelado'
+};
+
+const ReviewTypesEnum = {
+  POSITIVE: 'Positiva',
+  NEGATIVE: 'Negativa'
 };
 
 const ContractTypeEnum = {
@@ -75,7 +78,7 @@ const ContractTypeStateEnum = {
   FINALIZED: "Finalized"
 };
 
-const ContactTypeStateEnum = {
+const ContactStateEnum = {
   SENT: "Enviado",
   ACCEPTED: "Aceptado",
   NEW_PROPOSAL: "Nueva_Propuesta",
@@ -124,7 +127,6 @@ module.exports = {
   PG_ENABLE_SSL,
   auth,
   mailoptions,
-  RoleEnum,
   UserTypeEnum,
   UserStateEnum,
   PropertyStateEnum,
@@ -134,8 +136,9 @@ module.exports = {
   ContractTypeEnum,
   ContractTypeStateEnum,
   ContactTypeEnum,
-  ContactTypeStateEnum,
+  ContactStateEnum,
   ContactTimeTypesEnum,
+  ReviewTypesEnum,
   CurrencyTypeEnum,
   OrientationEnum,
   PositionEnum,

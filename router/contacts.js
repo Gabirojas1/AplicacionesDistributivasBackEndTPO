@@ -42,7 +42,7 @@ router.patch(
     check("statusMessage", "Debes dejar un mensaje para actualizar el contacto.").notEmpty(),
     check("status", "Debes indicar un nuevo estado.").notEmpty(),
     check("status", "El nuevo estado debe ser valido. (Aceptado, Rechazado, Nueva_Propuesta).")
-        .isIn(Object.values(constants.ContactTypeStateEnum).filter(state => state != "Enviado")),
+        .isIn(Object.values(constants.ContactStateEnum).filter(state => state != "Enviado")),
 
         
  // TODO! fix validacion

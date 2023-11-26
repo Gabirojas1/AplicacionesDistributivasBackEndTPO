@@ -105,7 +105,7 @@ User.sync().then(async () => {
   let userMail = "inmobiliaria@my.home"
   let userMail2 = "user@my.home";
 
-  // Mocked Usuario
+  // Mocked usuario
   await User.findOrCreate({
     where: { id: 8888 },
     defaults: {
@@ -122,7 +122,7 @@ User.sync().then(async () => {
     }
   })
 
-  // Mocked Inmobiliaria
+  // Mocked inmobiliaria
   await User.findOrCreate({
     where: { id: 9999 },
     defaults: {

@@ -24,7 +24,7 @@ const signup = async (req, res = response) => {
   try {
     const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } = req.body;
 
-    if (userType != "Inmobiliaria") {
+    if (userType != constants.UserTypeEnum.INMOBILIARIA) {
       return res
         .status(400)
         .jsonExtra({
@@ -206,7 +206,7 @@ const updateUser = async (req, res) => {
     if (!user) {
       return res.status(401).jsonExtra({
         status: "error",
-        message: "No autorizado. Usuario no existe, no esta logeado o sesion expirada",
+        message: "No autorizado. El usuario no existe, no esta logeado o sesion expirada",
       });
     }
 

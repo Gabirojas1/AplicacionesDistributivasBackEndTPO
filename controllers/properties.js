@@ -47,7 +47,7 @@ const getOwnedProperties = async (req, res) => {
   }
 };
 
-// Usuario agrega property
+// Metodo usuario agrega property
 const addProperty = async (req, res) => {
 
   const body = req.body;

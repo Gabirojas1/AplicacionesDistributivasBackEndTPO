@@ -2,7 +2,7 @@ const { response } = require("express");
 const { generateJWT } = require("../helpers/jwt");
 const UserRepository = require("../db/repository/UserRepository");
 const {OAuth2Client} = require('google-auth-library');
-const {  UserStateEnum, RoleEnum, auth, DEFAULT_PASSWORD} = require('../common/constants.js');
+const {  UserStateEnum, UserTypeEnum, auth, DEFAULT_PASSWORD} = require('../common/constants.js');
 
 const client = new OAuth2Client();
 
@@ -27,7 +27,7 @@ const token = req.headers.authorization
     const usuario = await UserRepository.findOrCreate(
         payload.given_name,
         payload.family_name, 
-        RoleEnum[0],
+        UserTypeEnum.USUARIO,
         payload.email,
         payload.picture,
         DEFAULT_PASSWORD,

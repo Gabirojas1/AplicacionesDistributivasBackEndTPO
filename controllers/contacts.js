@@ -1,28 +1,20 @@
 const { response } = require("express");
-const bcrypt = require("bcrypt");
-const { generateJWT } = require("../helpers/jwt");
 const UserRepository = require("../db/repository/UserRepository");
-
 const PropertiesRepository = require("../db/repository/PropertiesRepository");
-
 var constants = require("../common/constants");
-
-const mailHelper = require("../helpers/mail");
 const Contacto = require("../models/Contacto");
-const Property = require("../models/User");
-
 
 // Obtiene contactos de inmobiliaria o usuario loggeado.
-// Inmobiliaria: obtiene los contactos que recibieron todas sus propiedades.
-// Usuario: obtiene todos los contactos que envio a inmobiliarias.
+// inmobiliaria: obtiene los contactos que recibieron todas sus propiedades.
+// usuario: obtiene todos los contactos que envio a inmobiliarias.
 const getContacts = async (req, res = response) => {
   const uid = req.body.id;
   try {
 
     // validar usuario existente
     const loggedUserId = req.body.id;
-    let user = await UserRepository.getUserByIdUsuario(loggedUserId);
-    if (user == null) {
+    let loggedUser = await UserRepository.getUserByIdUsuario(loggedUserId);
+    if (loggedUser == null) {
       return res.status(400).jsonExtra({
         ok: false,
         message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
@@ -31,15 +23,15 @@ const getContacts = async (req, res = response) => {
 
     let contacts = [];
 
-    // Usuario
-    if (user.userType == "Usuario") {
+    // usuario
+    if (loggedUser.userType == constants.UserTypeEnum.USUARIO) {
       contacts = await Contacto.findAll({
         where: {
           userId: loggedUserId
         }
       })
     }
-    // Inmobiliaria
+    // inmobiliaria
     else {
       contacts = await Contacto.findAll({
         where: {
@@ -69,8 +61,8 @@ const addContact = async (req, res) => {
 
     // validar usuario existente
     const loggedUserId = req.body.id;
-    let user = await UserRepository.getUserByIdUsuario(loggedUserId);
-    if (user == null) {
+    let loggedUser = await UserRepository.getUserByIdUsuario(loggedUserId);
+    if (loggedUser == null) {
       return res.status(400).jsonExtra({
         ok: false,
         message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
@@ -78,7 +70,7 @@ const addContact = async (req, res) => {
     }
 
     // validar tipo de usuario
-    if (user.userType != "Usuario") {
+    if (loggedUser.userType != constants.UserTypeEnum.USUARIO) {
       return res.status(401).jsonExtra({
         ok: false,
         message: "No autorizado! Este endpoint es solo para usuarios.",
@@ -135,7 +127,7 @@ const addContact = async (req, res) => {
     if(contact[0] != null) {
       if (contact[1]) {
 
-        await user.addContact(contact[0]);
+        await loggedUser.addContact(contact[0]);
         await property.addContact(contact[0]);
 
         return res
@@ -177,8 +169,8 @@ const patchContact = async (req, res) => {
 
     // validar usuario existente
     const loggedUserId = req.body.id;
-    let user = await UserRepository.getUserByIdUsuario(loggedUserId);
-    if (user == null) {
+    let loggedUser = await UserRepository.getUserByIdUsuario(loggedUserId);
+    if (loggedUser == null) {
       return res.status(400).jsonExtra({
         ok: false,
         message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
@@ -201,14 +193,16 @@ const patchContact = async (req, res) => {
     }
 
     const newStatus = req.body.status;
+    const oldStatus = contact.status;
     const newStatusMessage = req.body.statusMessage;
+    const isInmobiliariaUserType = (loggedUser.userType==constants.UserTypeEnum.INMOBILIARIA);
 
     const visitDate = req.body.visitDate;
     const visitTime = req.body.visitTime;
 
     // validar que si es una nueva propuesta de visita, se informe visitDate y visitTime
     if (contact.contactType == constants.ContactTypeEnum.VISIT
-      && newStatus == constants.ContactTypeStateEnum.NEW_PROPOSAL) {
+      && newStatus == constants.ContactStateEnum.NEW_PROPOSAL) {
 
       if (visitTime == undefined || visitDate == undefined) {
         return res.status(400).jsonExtra({
@@ -220,15 +214,57 @@ const patchContact = async (req, res) => {
       contact.visitTime = visitTime;
       contact.visitDate = visitDate;
     }
+    
+    // Validar que el contacto le pertenece como usuario o inmobiliaria al loggedUser
+    let authorized = isInmobiliariaUserType ? contact.inmobiliariaId===loggedUserId : contact.userId===loggedUserId;
+    if (!authorized) {
+      return res.status(401).jsonExtra({
+        ok: false,
+        message: "El contacto no te pertenece.",
+      });
+    }
 
+    // Validar que si el estado anterior es enviado, solo pueda ser aceptado solo por la inmobiliaria
+    if (oldStatus == constants.ContactStateEnum.SENT
+      && newStatus == constants.ContactStateEnum.ACCEPTED
+      && loggedUser.id != contact.inmobiliariaId) {
+        return res.status(401).jsonExtra({
+          ok: false,
+          message: "Solo la inmobiliaria puede aceptar el contacto en estado Enviado.",
+        });
+    }
+
+    //Validar que la nueva propuesta se pueda hacer solo si esta en estado enviado
+    if (newStatus == constants.ContactStateEnum.NEW_PROPOSAL
+      && (oldStatus == constants.ContactStateEnum.ACCEPTED || oldStatus == constants.ContactStateEnum.REJECTED)
+      && loggedUser.id != contact.inmobiliariaId) {
+        return res.status(400).jsonExtra({
+          ok: false,
+          message: "Solo se puede proponer una nueva fecha si esta en estado Enviado o Nueva_Propuesta.",
+        });
+    }
+
+     // Fin de camino en estado
+     if (oldStatus == constants.ContactStateEnum.ACCEPTED
+      || newStatus == constants.ContactStateEnum.REJECTED) {
+        return res.status(401).jsonExtra({
+          ok: false,
+          message: "No es posible modificar un contacto ya aceptado o rechazado.",
+          data: contact,
+        });
+    }
+
+    // TODO!: enviar mails notificando cambios de estado
     contact.status = newStatus;
     contact.statusMessage = newStatusMessage;
-    contact.update();
+    contact.save();
     contact.reload();
 
     return res.status(200).jsonExtra({
       ok: true,
       message: "Contacto actualizado.",
+      oldStatus: oldStatus,
+      newStatus: newStatus,
       data: contact
     });
 
