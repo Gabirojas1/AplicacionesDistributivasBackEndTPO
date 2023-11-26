@@ -173,6 +173,8 @@ const addContract = async (req, res) => {
     // TODO! enviar email a inmobiliaria avisandole
     if (result == null) {
 
+       // TODO! validar estado de propiedad -> Publicada
+
       await Contract.create({
         contractorUserId: loggedUserId,
         contractTypeId: contractTypeId,
@@ -347,6 +349,8 @@ const patchContract = async (req, res) => {
         // TODO! create review
       }
     }
+
+    // TODO! validar estado de propiedad -> Publicada
 
     contract.status = newStatus;
     contract.save();

@@ -459,6 +459,8 @@ const deleteProperty = async (property) => {
 		fav.destroy();
 	});
 
+	// TODO! eliminar contactos logicamente
+
 
 	property.status = constants.PropertyStateEnum.DESPUBLICADA;
 	property.save();

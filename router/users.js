@@ -102,9 +102,12 @@ router.post(
 );
 
 router.delete(
-  "/favs/:id",
+  "/favs",
   checkAuth,
   deleteFavorite
 );
+
+
+// TODO! v1/users/comments >> Inmobiliaria obtiene todos los comentarios que recibieron sus propiedades
 
 module.exports = router;

@@ -3,6 +3,7 @@ const UserRepository = require("../db/repository/UserRepository");
 const PropertiesRepository = require("../db/repository/PropertiesRepository");
 var constants = require("../common/constants");
 const Contacto = require("../models/Contacto");
+const { Sequelize, Op } = require('sequelize');
 
 // Obtiene contactos de inmobiliaria o usuario loggeado.
 // inmobiliaria: obtiene los contactos que recibieron todas sus propiedades.
@@ -23,12 +24,16 @@ const getContacts = async (req, res = response) => {
 
     let contacts = [];
 
+    // Primero Enviado / Nuevas_Propuesta
+    let orderStatement = ['status', 'ASC']
+
     // usuario
     if (loggedUser.userType == constants.UserTypeEnum.USUARIO) {
       contacts = await Contacto.findAll({
         where: {
           userId: loggedUserId
-        }
+        },
+        order: [orderStatement],
       })
     }
     // inmobiliaria
@@ -36,7 +41,8 @@ const getContacts = async (req, res = response) => {
       contacts = await Contacto.findAll({
         where: {
           inmobiliariaId: loggedUserId
-        }
+        },
+        order: [orderStatement],
       })
     }
 
@@ -105,55 +111,55 @@ const addContact = async (req, res) => {
     // validar que si es visita, se informe visitDate y visitTime
     if (contactType == constants.ContactTypeEnum.VISIT
       && (visitTime == undefined || visitDate == undefined)) {
-        return res.status(400).jsonExtra({
-          ok: false,
-          message: "Debe informar fecha y hora de visita.",
-        });
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "Debe informar fecha y hora de visita.",
+      });
     }
 
-    let contact = await Contacto.findOrCreate({
-      where: { userId: loggedUserId, propertyId: property.id },
-      defaults: {
+    let contact = await Contacto.findOne({
+      where: {
         userId: loggedUserId,
-        inmobiliariaId: property.userId,
         propertyId: property.id,
-        contactType: contactType,
-        visitDate: visitDate ? visitDate : null,
-        visitTime: visitTime ? visitTime : null,
-        statusMessage: statusMessage
+        status: {
+          [Op.in]: [
+            constants.ContactStateEnum.SENT,
+            constants.ContactStateEnum.NEW_PROPOSAL
+          ]
+        },
       }
     });
 
-    if(contact[0] != null) {
-      if (contact[1]) {
-
-        await loggedUser.addContact(contact[0]);
-        await property.addContact(contact[0]);
-
-        return res
-        .status(201)
+    if (contact != null) {
+      return res
+        .status(400)
         .jsonExtra({
           ok: true,
-          data: contact[0]
+          message: "Ya enviaste un contacto para esta propiedad. Para generar uno nuevo, descarta el anterior y envia otro.",
+          data: contact,
         });
-      } else {
-        return res
-        .status(200)
-        .jsonExtra({
-          ok: true,
-          message: "Ya enviaste un contacto. Para generar uno nuevo, da de baja el anterior y envia otro.",
-          data: contact[0],
-
-        });
-      } 
     }
 
-    return res.status(500).jsonExtra({
-      ok: true,
-      message: "Error al intentar dar de alta el contacto..",
+    contact = await Contacto.create({
+      userId: loggedUserId,
+      inmobiliariaId: property.userId,
+      propertyId: property.id,
+      contactType: contactType,
+      visitDate: visitDate ? visitDate : null,
+      visitTime: visitTime ? visitTime : null,
+      statusMessage: statusMessage
     });
 
-  } catch(error) {
+    await loggedUser.addContact(contact);
+    await property.addContact(contact);
+
+    return res
+      .status(201)
+      .jsonExtra({
+        ok: true,
+        data: contact
+      });
+  } catch (error) {
     return res.status(error.status ? error.status : 500).jsonExtra({
       ok: false,
       message: error.message ? error.message : "Error inesperado al dar de alta el contacto",
@@ -194,7 +200,6 @@ const patchContact = async (req, res) => {
 
     const newStatus = req.body.status;
     const oldStatus = contact.status;
-    const newStatusMessage = req.body.statusMessage;
     const isInmobiliariaUserType = (loggedUser.userType==constants.UserTypeEnum.INMOBILIARIA);
 
     const visitDate = req.body.visitDate;
@@ -214,6 +219,16 @@ const patchContact = async (req, res) => {
       contact.visitTime = visitTime;
       contact.visitDate = visitDate;
     }
+
+    
+     // validar que si es pregunta, no se pueda poner nueva propuesta
+     if (contact.contactType == constants.ContactTypeEnum.QUESTION
+      && newStatus === constants.ContactStateEnum.NEW_PROPOSAL) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "Nueva propuesta no es un estado válido para una pregunta. Solo se puede utilizar para visitas.",
+      });
+    }
     
     // Validar que el contacto le pertenece como usuario o inmobiliaria al loggedUser
     let authorized = isInmobiliariaUserType ? contact.inmobiliariaId===loggedUserId : contact.userId===loggedUserId;
@@ -226,36 +241,47 @@ const patchContact = async (req, res) => {
 
     // Validar que si el estado anterior es enviado, solo pueda ser aceptado solo por la inmobiliaria
     if (oldStatus == constants.ContactStateEnum.SENT
-      && newStatus == constants.ContactStateEnum.ACCEPTED
+      && (newStatus == constants.ContactStateEnum.ACCEPTED || newStatus == constants.ContactStateEnum.NEW_PROPOSAL)
       && loggedUser.id != contact.inmobiliariaId) {
         return res.status(401).jsonExtra({
           ok: false,
-          message: "Solo la inmobiliaria puede aceptar el contacto en estado Enviado.",
+          message: "Solo la inmobiliaria puede aceptar o proponer una nueva fecha/horario para el contacto en estado Enviado.",
         });
     }
 
-    //Validar que la nueva propuesta se pueda hacer solo si esta en estado enviado
-    if (newStatus == constants.ContactStateEnum.NEW_PROPOSAL
-      && (oldStatus == constants.ContactStateEnum.ACCEPTED || oldStatus == constants.ContactStateEnum.REJECTED)
-      && loggedUser.id != contact.inmobiliariaId) {
-        return res.status(400).jsonExtra({
+    // Validar que si el estado anterior es Nueva_Propuesta, solo pueda ser aceptado por el usuario.
+    if (oldStatus == constants.ContactStateEnum.NEW_PROPOSAL
+      && (newStatus == constants.ContactStateEnum.ACCEPTED)
+      && loggedUser.id != contact.userId) {
+        return res.status(401).jsonExtra({
           ok: false,
-          message: "Solo se puede proponer una nueva fecha si esta en estado Enviado o Nueva_Propuesta.",
+          message: "Solo la usuario puede aceptar el contacto en estado Nueva_Propuesta.",
+        });
+    }
+
+    // Validar que si es nueva propuesta, no se pueda proponer otra fecha.
+    if (oldStatus == constants.ContactStateEnum.NEW_PROPOSAL
+      && (newStatus == constants.ContactStateEnum.NEW_PROPOSAL)) {
+        return res.status(401).jsonExtra({
+          ok: false,
+          message: "Solo la inmobiliaria puede proponer una fecha y por unica vez, se debe descartar y crear otro contacto.",
         });
     }
 
      // Fin de camino en estado
      if (oldStatus == constants.ContactStateEnum.ACCEPTED
-      || newStatus == constants.ContactStateEnum.REJECTED) {
+      || oldStatus == constants.ContactStateEnum.DISCARDED) {
         return res.status(401).jsonExtra({
           ok: false,
-          message: "No es posible modificar un contacto ya aceptado o rechazado.",
+          message: "No es posible modificar un contacto ya aceptado o descartado.",
           data: contact,
         });
     }
 
     // TODO!: enviar mails notificando cambios de estado
     contact.status = newStatus;
+
+    const newStatusMessage = req.body.statusMessage;
     contact.statusMessage = newStatusMessage;
     contact.save();
     contact.reload();

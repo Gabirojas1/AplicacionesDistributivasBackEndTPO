@@ -20,7 +20,7 @@ const Contract = sq.define('contract', {
   status: {
     type: DataTypes.ENUM,
     values: Object.values(constants.ContractStatusEnum),
-    defaultValue: constants.ContractStatusEnum.INITIALIZED
+    defaultValue: constants.ContractStatusEnum.RESERVED
   },
   reservedAmount: {
     type: DataTypes.DOUBLE,

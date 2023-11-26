@@ -16,6 +16,8 @@ const getProperties = async (req, res) => {
     params.filterOwned = req.filterOwned ? true : false
 
     let result = await PropertiesRepository.getProperties(params)
+
+    // TODO!: incluir reviews en propiedad.
     
     return res.status(200).jsonExtra(result)
   } catch (error) {

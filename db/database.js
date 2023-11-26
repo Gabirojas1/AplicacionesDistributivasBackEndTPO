@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 const constants = require('../common/constants');
 
 const sequelize = new Sequelize(constants.PG_CONNECTION_STRING, {
-  logging: true,
+  logging: false,
   dialect: 'postgres',
   dialectOptions: {
     ssl: constants.PG_ENABLE_SSL

@@ -13,7 +13,6 @@ const mailHelper = require("../helpers/mail");
 
 
 const multimediaHelper = require("../helpers/multimedia");
-const User = require("../models/User");
 const Favorite = require("../models/Favorite");
 
 
@@ -305,8 +304,6 @@ const addFavorite = async (req, res) => {
 
     let properties = await PropertiesRepository.getProperties({
       propertyId: req.body.propertyId,
-      userId: req.body.id, // body.id siempre contiene el id del usuario loggeado
-      filterOwned: true
     });
 
     if (properties.length < 1) {
@@ -368,8 +365,10 @@ const addFavorite = async (req, res) => {
 const deleteFavorite = async (req, res) => {
   try {
 
-    const favoriteId = req.params.id;
-    let favorite = await Favorite.findOne({id: favoriteId});
+    const favoriteId = req.body.favoriteId;
+    let favorite = await Favorite.findOne({
+      where: {favoriteId: favoriteId}
+    });
     if (favorite == null) {
       return res
       .status(404)

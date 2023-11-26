@@ -82,7 +82,7 @@ const ContactStateEnum = {
   SENT: "Enviado",
   ACCEPTED: "Aceptado",
   NEW_PROPOSAL: "Nueva_Propuesta",
-  REJECTED: "Rechazado"
+  DISCARDED: "Descartado"
 };
 
 const ContactTimeTypesEnum = {

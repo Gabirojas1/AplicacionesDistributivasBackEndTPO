@@ -41,7 +41,7 @@ router.patch(
     check("contactId", "El ID del contacto obligatorio").notEmpty(),
     check("statusMessage", "Debes dejar un mensaje para actualizar el contacto.").notEmpty(),
     check("status", "Debes indicar un nuevo estado.").notEmpty(),
-    check("status", "El nuevo estado debe ser valido. (Aceptado, Rechazado, Nueva_Propuesta).")
+    check("status", "El nuevo estado debe ser valido. (Aceptado, Descartado, Nueva_Propuesta).")
         .isIn(Object.values(constants.ContactStateEnum).filter(state => state != "Enviado")),
 
         
