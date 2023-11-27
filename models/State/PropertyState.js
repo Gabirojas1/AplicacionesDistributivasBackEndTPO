@@ -180,9 +180,6 @@ class Publicada {
                 await this.state.transitionTo(PropertyStateEnum.INITIAL_1);
             } 
             return this.state;
-            // TODO! logica para despublicar 
-            // console.log("despublicar");
-            // await this.state.transitionTo(PropertyStateEnum.DESPUBLICADA);
         };
 
         this.toJSON = function () {

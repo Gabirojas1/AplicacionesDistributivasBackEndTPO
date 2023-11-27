@@ -1,6 +1,5 @@
 const { response } = require("express");
 const UserRepository = require("../db/repository/UserRepository");
-const { Sequelize, Op } = require('sequelize');
 var constants = require("../common/constants");
 const Property = require("../models/Property");
 const ContractType = require("../models/ContractType");
@@ -9,6 +8,8 @@ const Comment = require("../models/Comment");
 const User = require("../models/User");
 const Location = require("../models/Location");
 const Multimedia = require("../models/Multimedia");
+
+const mailHelper = require('../helpers/mail');
 
 // Obtiene los contratos de inmobiliaria o usuario loggeado.
 // inmobiliaria: obtiene los contratos que recibieron todas sus propiedades.
@@ -205,7 +206,6 @@ const addContract = async (req, res) => {
     });
 
     // No existe ningun contrato vigente
-    // TODO! enviar email a inmobiliaria avisandole
     if (result == null) {
 
       await Contract.create({
@@ -265,6 +265,11 @@ const addContract = async (req, res) => {
           property.status = constants.PropertyStateEnum.RESERVADA;
           await property.save();
           await property.reload();
+
+          let text = `Hola! Te escribimos de myHome! \n
+          Te informamos que se ha reservado una propiedad que te pertenece. `;
+          mailHelper.sendMail(property.user.contactMail, text);
+          
 
           return res.status(201).jsonExtra({
             ok: true,

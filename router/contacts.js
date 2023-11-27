@@ -48,10 +48,7 @@ router.patch(
  // TODO! fix validacion
     check("visitDate", "El visitDate debe ser una fecha (e.g, 2023-12-25).").optional().isDate(),
     //check('visitDate', 'La fecha de visita debe estar en el futuro.').optional().isAfter(Date.now()),
-
     check('visitTime', 'El tiempo de visita debe ser AM o PM.').optional().isIn(Object.values(constants.ContactTimeTypesEnum)),
-
-    // TODO! si el estado es Nueva_Propuesta, debe informar VisitDate y visitTime
     validateField,
 ],
     patchContact

@@ -94,10 +94,11 @@ const auth = {
   refreshToken: process.env.GMAIL_API_REFRESH_TOKEN,
 };
 
-const mailoptions = {
+const mailOptions = {
   from: "gaxelac@gmail.com",
   to: "gaxelac@gmail.com",
   subject: "Acción en progreso",
+  from: "myHome",
 };
 
 const OTP_LENGTH = 6;
@@ -112,7 +113,7 @@ module.exports = {
   PG_CONNECTION_STRING,
   PG_ENABLE_SSL,
   auth,
-  mailoptions,
+  mailOptions,
   UserTypeEnum,
   UserStateEnum,
   PropertyStateEnum,

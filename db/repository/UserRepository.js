@@ -159,7 +159,6 @@ const updateUser = async (user, body) => {
     delete clone.createdAt;
     delete clone.updatedAt;
 
-    // TODO! agregar associations 
 	await user.update(clone);
 	await user.save();
     await user.reload({include: [{all: true, nested: true}]});

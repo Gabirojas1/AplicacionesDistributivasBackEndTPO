@@ -3,7 +3,10 @@ const UserRepository = require("../db/repository/UserRepository");
 const PropertiesRepository = require("../db/repository/PropertiesRepository");
 var constants = require("../common/constants");
 const Contacto = require("../models/Contacto");
-const { Sequelize, Op } = require('sequelize');
+const { Op } = require('sequelize');
+const User = require("../models/User");
+
+const mailHelper = require('../helpers/mail');
 
 // Obtiene contactos de inmobiliaria o usuario loggeado.
 // inmobiliaria: obtiene los contactos que recibieron todas sus propiedades.
@@ -85,19 +88,14 @@ const addContact = async (req, res) => {
 
     // obtener y validar que la propiedad existe
     const propertyId = req.body.propertyId;
-    let properties = await PropertiesRepository.getProperties({
-      propertyId: propertyId
-    });
+    let property = await PropertiesRepository.getPropertyById(propertyId);
 
-    if (properties.length < 1) {
-      return res.status(401).jsonExtra({
+    if (property == null) {
+      return res.status(404).jsonExtra({
         ok: false,
         message: "No se encontro la propiedad.",
       });
     }
-
-    let property = properties.data[0];
-
 
     const contactType = req.body.contactType;
 
@@ -153,6 +151,11 @@ const addContact = async (req, res) => {
     await loggedUser.addContact(contact);
     await property.addContact(contact);
 
+    // Notificar inmobiliaria
+    let text = `Hola! Te escribimos de myHome! \n
+    Te informamos que se recibió un contacto para su inmobiliaria.`;
+    mailHelper.sendMail(property.user.contactMail, text);
+    
     return res
       .status(201)
       .jsonExtra({
@@ -188,7 +191,12 @@ const patchContact = async (req, res) => {
     let contact = await Contacto.findOne({
       where: {
         id: contactId
-      }
+      },
+      include: [{
+        model: User,
+        required: true,
+      } 
+      ]
     })
 
     if(contact == null) {
@@ -278,7 +286,59 @@ const patchContact = async (req, res) => {
         });
     }
 
-    // TODO!: enviar mails notificando cambios de estado
+    // Informar a la parte involucrada mediante estado
+    let mail = "";
+    let text = "";
+
+    let inmobiliaria = await UserRepository.getUserByIdUsuario(contact.inmobiliariaId);
+    let mailInmobiliaria = inmobiliaria.contactMail;
+    switch (newStatus) {
+      case constants.ContactStateEnum.ACCEPTED:
+        text = `Hola! Te escribimos de myHome! \n
+        Te informamos que se ha respondido y aceptado un contacto que te pertenece. `;
+
+        if(oldStatus == constants.ContactStateEnum.SENT) {
+          mail = contact.user.mail;
+        }
+
+        if(oldStatus == constants.ContactStateEnum.NEW_PROPOSAL) {
+          mail = mailInmobiliaria;
+        }
+        break;
+
+      case constants.ContactStateEnum.DISCARDED:
+        text = `Hola! Te escribimos de myHome! \n
+        Te informamos que se ha respondido y descartado un contacto que te pertenece. `;
+
+        if(oldStatus == constants.ContactStateEnum.SENT) {
+          if (contact.user.id != loggedUserId) {
+            mail = contact.user.mail;
+          } 
+        }
+
+        if(oldStatus == constants.ContactStateEnum.NEW_PROPOSAL) {
+          mail = mailInmobiliaria;
+        }
+        break;
+
+      case constants.ContactStateEnum.NEW_PROPOSAL:
+          text = `Hola! Te escribimos de myHome! \n
+          Te informamos que se ha respondido y propuesto una nueva fecha para una visita que te pertenece. `;
+  
+          if(oldStatus == constants.ContactStateEnum.SENT) {
+            mail = contact.user.mail;
+          }
+
+          break;
+    
+      default:
+        break;
+    }
+
+    if(mail != "" && text != "") {
+      mailHelper.sendMail(mail, text);
+    }
+   
     contact.status = newStatus;
 
     const newStatusMessage = req.body.statusMessage;

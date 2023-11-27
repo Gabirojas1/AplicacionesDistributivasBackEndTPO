@@ -3,7 +3,6 @@ const { sq } = require('../db/database');
 const { PropertyState } = require('./State/PropertyState');
 
 const {PropertyTypeEnum, PropertyStateEnum, PositionEnum, OrientationEnum} = require('../common/constants');
-const ContractType = require('./ContractType');
 
 const Property = sq.define('property', {
   id: {

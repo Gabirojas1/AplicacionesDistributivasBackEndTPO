@@ -39,12 +39,15 @@ const login = async (req, res = response) => {
     }
 
 
-    if (usuario.status === constants.UserStateEnum.INITIAL) {
-      return res.status(401).jsonExtra({
-       ok: false,
-       message: "Tu usuario está en proceso de confirmación, revisa tu email. ",
-      });
+    if(!process.env.DEV_ENV) {
+      if (usuario.status === constants.UserStateEnum.INITIAL) {
+        return res.status(401).jsonExtra({
+         ok: false,
+         message: "Tu usuario está en proceso de confirmación, revisa tu email. ",
+        });
+      }
     }
+    
 
     // Generate JWT
     const token = await generateJWT(usuario.id);
@@ -86,17 +89,10 @@ const forgotPassword = async (req, res) => {
       });
 
       await UserRepository.genOTP(foundUser, otp);
-      //new code
-      const mailOptions = {
-        ...constants.mailoptions,
-        from: "myHome",
-        to: req.body.mail,
-        text:
-          `Hola! Te escribimos de myHome! \n
-          Éste es el código para cambiar tu contraseña: ` + otp,
-      };
 
-      await mailHelper.sendMail(mailOptions);
+      let text = `Hola! Te escribimos de myHome! \n
+        Éste es el código para cambiar tu contraseña: ` + otp;
+      await mailHelper.sendMail(req.body.mail, text);
     }
 
     return res.status(200).jsonExtra({

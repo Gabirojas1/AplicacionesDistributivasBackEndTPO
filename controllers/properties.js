@@ -16,8 +16,6 @@ const getProperties = async (req, res) => {
     params.filterOwned = req.filterOwned ? true : false
 
     let result = await PropertiesRepository.getProperties(params)
-
-    // TODO!: incluir reviews en propiedad.
     
     return res.status(200).jsonExtra(result)
   } catch (error) {
@@ -146,6 +144,20 @@ const updateProperty = async (req, res) => {
       });
     }
 
+    if (req.body.status == constants.PropertyStateEnum.DESPUBLICADA) {
+      return res.status(401).jsonExtra({
+        status: "error",
+        message: "No autorizado. Para despublicar una propiedad, utilize DELETE /v1/properties?propertyId=" + property.id,
+      });
+    }
+
+    if (req.body.status == constants.PropertyStateEnum.RESERVADA) {
+      return res.status(401).jsonExtra({
+        status: "error",
+        message: "No autorizado. Para reservar una propiedad, debe hacerlo un usuario creando un contrato a través de POST /v1/contracts.",
+      });
+    }
+
     let photosArray = [];
 
     // cloudinary (photo upload)
@@ -191,38 +203,40 @@ const updateProperty = async (req, res) => {
 
 // Elimina logicamente propiedad existente
 const deleteProperty = async (req, res) => {
-  const params = req.query;
   try {
 
     // Validar que la propiedad existe
     // Tiene que existir con el propertyId y pertenecer al usuario loggeado.
-    let properties = await PropertiesRepository.getProperties({
-      propertyId: params.propertyId,
-      ownerUserId: req.body.id, // body.id siempre contiene el id del usuario loggeado
-      filterOwned: true
-    });
+    let property = await PropertiesRepository.getPropertyById(req.query.propertyId);
 
-    // El usuario no es dueño de la propiedad o 
     // La propiedad no existe
-    if (properties.data.length < 1) {
+    if (property == null) {
       return res.status(401).jsonExtra({
         status: "error",
         message: "No autorizado. La propiedad no existe o no te pertenece.",
       });
     }
 
-    let property = properties.data[0];
+    // El usuario no es dueño de la propiedad o 
     if (property.ownerUserId != req.body.id) {
       return res.status(401).jsonExtra({
         status: "error",
-        message: "No autorizado. La propiedad no existe o no te pertenece.",
+        message: "No autorizado. La propiedad no te pertenece.",
       });
     }
 
+    if(property.status != constants.PropertyStateEnum.PUBLICADA) {
+      return res.status(400).jsonExtra({
+        status: "error",
+        message: "La propiedad no se encuentra publicada. Estado actual: " + property.status,
+        data: property
+      });
+    }
+    
     await PropertiesRepository.deleteProperty(property);
     return res.status(200).jsonExtra({
       status: "ok",
-      message: "propiedad dada de baja, no se mostrara en resultados de busqueda",
+      message: "Propiedad despublicada, no se mostrara en resultados de búsqueda. Para volverla a publicar, utilize PATCH /v1/properties con status igual a Publicada.",
     });
   } catch (e) {
     return res

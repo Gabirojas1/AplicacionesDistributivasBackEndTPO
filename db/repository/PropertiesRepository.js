@@ -1,17 +1,19 @@
 const constants = require('../../common/constants');
 const Property = require('../../models/Property');
-const { Op, where } = require('sequelize');
+const { Op } = require('sequelize');
 const User = require('../../models/User');
 const ContractType = require('../../models/ContractType');
 const Location = require('../../models/Location');
 const moment = require('moment');
 
 const axios = require('axios');
-const { response } = require('express');
 const Multimedia = require('../../models/Multimedia');
 const Favorite = require('../../models/Favorite');
 const Contract = require('../../models/Contract');
 const Comment = require('../../models/Comment');
+const Contacto = require('../../models/Contacto');
+
+const mailHelper = require('../../helpers/mail.js');
 
 /**
 * Gets properties by filtering query
@@ -201,27 +203,32 @@ const getProperties = async ({
 		offset: skip,
 		limit: limit,
 		include: [{
-			model: ContractType,
-			where: Object.keys(contractTypeWhereClause).length ? contractTypeWhereClause : undefined,
-        	required: Object.keys(contractTypeWhereClause).length ? true : false,
-			include: [{
-				model: Contract
-			}]
-		}, {
-			model: Location,
-			where: Object.keys(locationTypeWhereClause).length ? locationTypeWhereClause : undefined,
-        	required: Object.keys(locationTypeWhereClause).length ? true : false
-		}, {
-			model: Multimedia
-		},
-		{
 			model: User,
 			required: true,
 			include: [{
 				model: Comment,
 				required: false,
 			}]
-		}]
+		},
+		{
+			model: ContractType,
+			where: Object.keys(contractTypeWhereClause).length ? contractTypeWhereClause : undefined,
+			required: Object.keys(contractTypeWhereClause).length ? true : false,
+			include: [{
+				model: Contract
+			}]
+		},
+		{
+			model: Contacto,
+			required: false
+		}, {
+			model: Location,
+			where: Object.keys(locationTypeWhereClause).length ? locationTypeWhereClause : undefined,
+			required: Object.keys(locationTypeWhereClause).length ? true : false
+		}, {
+			model: Multimedia
+		},
+		]
 	}
 
 	let totalRecords = await Property.count({ where: whereStatement });
@@ -268,6 +275,10 @@ const getPropertyById = async(propertyId) => {
         where: {
             id: propertyId
         },
+		include: [{
+			model: User,
+			required: true
+		}]
     }).then(res => {
         property = res;
     }).catch((error) => {
@@ -346,9 +357,7 @@ const addProperty = async (body) => {
 				result.locationId = aux[0].id;
 				result.location = aux[0];
 				result.setLocation(aux[0]);
-				
 
-				// TODO! handle API error
 			}
 
 			// Multimedia / Photos
@@ -416,9 +425,6 @@ const updateProperty = async (property, body) => {
 		property.locationId = aux[0].id;
 		property.location = aux[0];
 		property.setLocation(aux[0]);
-		
-
-		// TODO! handle API error
 	}
 
 	// Tipos de Contrato
@@ -435,8 +441,7 @@ const updateProperty = async (property, body) => {
 			delete whereStmt.expPrice;
 			delete whereStmt.currency;
 			delete whereStmt.contractDays;
-
-			// TODO! validar fields
+			
 			// ejemplo Rent deberia tener contractDays
 			let res = await ContractType.findOrCreate({
 				where: whereStmt,
@@ -494,13 +499,55 @@ const updateProperty = async (property, body) => {
 const deleteProperty = async (property) => {
 	// TODO! eliminar favoritos logicamente
 
-	let favorites = await Favorite.findAll({where: {propertyId: property.id}})
-	favorites.forEach( async fav => {
+	let alreadySentMail = [];
+
+	let favorites = await Favorite.findAll({
+		where: {
+			propertyId: property.id
+		},
+		include: [{
+				model: User,
+				required: true
+			}
+		]
+	})
+	favorites.forEach(async fav => {
+
+		if (!alreadySentMail.includes(fav.user.mail)) {
+
+			let text = `Hola! Te escribimos de myHome! \n
+			Te informamos que un favorito que tenías guardado fue eliminado debido a que la propiedad fue despublicada. `;
+			mailHelper.sendMail(fav.user.mail, text);
+			
+			alreadySentMail.push(fav.user.mail);
+		}
+
 		fav.destroy();
 	});
 
 	// TODO! eliminar contactos logicamente
+	let contactos = await Contacto.findAll({
+		where: { 
+			propertyId: property.id 
+		},
+		include: [{
+			model: User,
+			required: true,
+		}]
+	})
+	contactos.forEach( async ct => {
 
+		if (!alreadySentMail.includes(ct.user.mail)) {
+			let text = `Hola! Te escribimos de myHome! \n
+			Te informamos que un favorito que tenías guardado fue eliminado debido a que la propiedad fue despublicada. `;
+			mailHelper.sendMail(ct.user.mail, text);
+
+			alreadySentMail.push(ct.user.mail)
+		}
+
+
+		ct.destroy();
+	});
 
 	property.status = constants.PropertyStateEnum.DESPUBLICADA;
 	property.save();

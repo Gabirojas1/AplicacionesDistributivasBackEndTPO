@@ -23,14 +23,17 @@ const signup = async (req, res = response) => {
   try {
     const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } = req.body;
 
-    if (userType != constants.UserTypeEnum.INMOBILIARIA) {
-      return res
-        .status(400)
-        .jsonExtra({
-          status: "error",
-          message: `'${userType} no es un tipo de usuario valido para registrarse a traves de este endpoint. Utilize Google Auth para registrarse como usuario.'`,
-        });
+    if (!process.env.DEV_ENV) {
+      if (userType != constants.UserTypeEnum.INMOBILIARIA) {
+        return res
+          .status(400)
+          .jsonExtra({
+            status: "error",
+            message: `'${userType} no es un tipo de usuario valido para registrarse a traves de este endpoint. Utilize Google Auth para registrarse como usuario.'`,
+          });
+      }
     }
+   
 
     // buscamos por mail
     user = await UserRepository.getUserByMail(mail);
@@ -63,17 +66,12 @@ const signup = async (req, res = response) => {
 
     // TODO axel: hacer que sea un token de un solo uso -- cargar en la db, agregar marca de registro completo, volar de la db.
     const token = await generateJWT({ id: user.id });
-    const mailOptions = {
-      ...constants.mailoptions,
-      from: "myHome",
-      to: req.body.mail,
-      text:
-        `Hola! Te escribimos de myHome! \n
-        Has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
-        Sigue este link: ` + process.env.BACKEND_URI + `/v1/users/confirm?token=` + token,
-    };
 
-    const result = await mailHelper.sendMail(mailOptions);
+    let text = `Hola! Te escribimos de myHome! \n
+      Has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
+      Sigue este link: ` + process.env.BACKEND_URI + `/v1/users/confirm?token=` + token;
+
+    const result = await mailHelper.sendMail(req.body.mail, text);
     if (result.accepted.length > 0) {
       return res
         .status(200)
@@ -260,17 +258,24 @@ const updateUser = async (req, res) => {
 const getFavorites = async (req, res) => {
   try {
 
-    const userId = req.body.id;
-    let user = await UserRepository.getUserByIdUsuario(userId);
-    if (user == null) {
+    const loggedUserId = req.body.id;
+    let loggedUser = await UserRepository.getUserByIdUsuario(loggedUserId);
+    if (loggedUser == null) {
       return res.status(400).jsonExtra({
         ok: false,
         message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
       });
     }
 
+    if (loggedUser.userType != constants.UserTypeEnum.USUARIO) {
+      return res.status(401).jsonExtra({
+        ok: false,
+        message: "No autorizado. Solo los usuarios no inmobiliarias pueden tener favoritos.",
+      });
+    }
+
     let favorites = await Favorite.findAll({
-      where: {userId: userId},
+      where: {userId: loggedUserId},
     })
 
     return res
@@ -293,19 +298,26 @@ const getFavorites = async (req, res) => {
 const addFavorite = async (req, res) => {
   try {
 
-    const userId = req.body.id;
-    let user = await UserRepository.getUserByIdUsuario(userId);
-    if (user == null) {
+    const loggedUserId = req.body.id;
+    let loggedUser = await UserRepository.getUserByIdUsuario(loggedUserId);
+    if (loggedUser == null) {
       return res.status(400).jsonExtra({
         ok: false,
         message: "No se pudo encontrar el usuario loggeado. Sesion Expirada o el usuario no existe.",
       });
     }
 
+    if (loggedUser.userType != constants.UserTypeEnum.USUARIO) {
+      return res.status(401).jsonExtra({
+        ok: false,
+        message: "No autorizado. Solo los usuarios no inmobiliarias pueden guardar propiedades en favorito.",
+      });
+    }
+
     let property = await PropertiesRepository.getPropertyById(req.body.propertyId);
     if (property == null) {
-      return res.status(401).jsonExtra({
-        status: "error",
+      return res.status(404).jsonExtra({
+        ok: false,
         message: "No se encontro la propiedad.",
       });
     }
@@ -318,9 +330,9 @@ const addFavorite = async (req, res) => {
     }
 
     let fav = await Favorite.findOrCreate({
-      where: { userId: userId, propertyId: property.id },
+      where: { userId: loggedUserId, propertyId: property.id },
       defaults: {
-        userId: userId, propertyId: property.id
+        userId: loggedUserId, propertyId: property.id
       }
     });
 
@@ -328,7 +340,7 @@ const addFavorite = async (req, res) => {
       
 
       if (fav[1]) {
-        await user.addFavorite(fav[0]);
+        await loggedUser.addFavorite(fav[0]);
 
         return res
         .status(201)
@@ -371,6 +383,7 @@ const deleteFavorite = async (req, res) => {
     let favorite = await Favorite.findOne({
       where: {favoriteId: favoriteId}
     });
+
     if (favorite == null) {
       return res
       .status(404)
@@ -386,7 +399,7 @@ const deleteFavorite = async (req, res) => {
       .status(401)
       .jsonExtra({
         ok: false,
-        message: "El favorito no te pertenece."
+        message: "No autorizado: El favorito no te pertenece."
       });
     }
 
