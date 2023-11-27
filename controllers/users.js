@@ -13,7 +13,6 @@ const mailHelper = require("../helpers/mail");
 
 
 const multimediaHelper = require("../helpers/multimedia");
-const User = require("../models/User");
 const Favorite = require("../models/Favorite");
 
 
@@ -24,7 +23,7 @@ const signup = async (req, res = response) => {
   try {
     const { firstName, lastName, userType, password, repeatPassword, mail, contactMail, fantasyName, phone, cuit } = req.body;
 
-    if (userType != "Inmobiliaria") {
+    if (userType != constants.UserTypeEnum.INMOBILIARIA) {
       return res
         .status(400)
         .jsonExtra({
@@ -71,7 +70,7 @@ const signup = async (req, res = response) => {
       text:
         `Hola! Te escribimos de myHome! \n
         Has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
-        Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token,
+        Sigue este link: ` + process.env.BACKEND_URI + `/v1/users/confirm?token=` + token,
     };
 
     const result = await mailHelper.sendMail(mailOptions);
@@ -206,7 +205,7 @@ const updateUser = async (req, res) => {
     if (!user) {
       return res.status(401).jsonExtra({
         status: "error",
-        message: "No autorizado. Usuario no existe, no esta logeado o sesion expirada",
+        message: "No autorizado. El usuario no existe, no esta logeado o sesion expirada",
       });
     }
 
@@ -303,20 +302,20 @@ const addFavorite = async (req, res) => {
       });
     }
 
-    let properties = await PropertiesRepository.getProperties({
-      propertyId: req.body.propertyId,
-      userId: req.body.id, // body.id siempre contiene el id del usuario loggeado
-      filterOwned: true
-    });
-
-    if (properties.length < 1) {
+    let property = await PropertiesRepository.getPropertyById(req.body.propertyId);
+    if (property == null) {
       return res.status(401).jsonExtra({
         status: "error",
         message: "No se encontro la propiedad.",
       });
     }
 
-    let property = properties.data[0];
+    if (property.status != constants.PropertyStateEnum.PUBLICADA) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se puede guardar en favoritos una publicacion que no este publicada. Estado actual: " + property.status,
+      });
+    }
 
     let fav = await Favorite.findOrCreate({
       where: { userId: userId, propertyId: property.id },
@@ -368,8 +367,10 @@ const addFavorite = async (req, res) => {
 const deleteFavorite = async (req, res) => {
   try {
 
-    const favoriteId = req.params.id;
-    let favorite = await Favorite.findOne({id: favoriteId});
+    const favoriteId = req.body.favoriteId;
+    let favorite = await Favorite.findOne({
+      where: {favoriteId: favoriteId}
+    });
     if (favorite == null) {
       return res
       .status(404)

@@ -16,13 +16,15 @@ class PropertyState {
                 case PropertyStateEnum.INITIAL_3:
                     this.currentState = new InitialState3(this);
                     break;
-
                 case PropertyStateEnum.PUBLICADA:
                     this.currentState = new Publicada(this);
                     break;
                 case PropertyStateEnum.DESPUBLICADA:
                     this.currentState = new Despublicada(this);
                     break;
+                case PropertyStateEnum.RESERVADA:
+                        this.currentState = new Reservada(this);
+                        break;
                 default:
                     throw Error("error! not valid state ")
             }
@@ -181,6 +183,21 @@ class Publicada {
             // TODO! logica para despublicar 
             // console.log("despublicar");
             // await this.state.transitionTo(PropertyStateEnum.DESPUBLICADA);
+        };
+
+        this.toJSON = function () {
+            return this.statusStr;
+        };
+    }
+}
+
+class Reservada {
+    constructor(state) {
+        this.state = state;
+        this.statusStr = PropertyStateEnum.RESERVADA;
+
+        this.execute = async function () {
+            return this.state;
         };
 
         this.toJSON = function () {

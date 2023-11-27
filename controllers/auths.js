@@ -25,20 +25,26 @@ const login = async (req, res = response) => {
 
     const validPassword = bcrypt.compareSync(password, usuario.password);
     if (!validPassword) {
-      return res.status(400).jsonExtra({
+      return res.status(401).jsonExtra({
         ok: false,
         message: "Credenciales invalidas.",
       });
     }
 
+    if (usuario.status === constants.UserStateEnum.DEACTIVATED) {
+      return res.status(401).jsonExtra({
+       ok: false,
+       message: "Tu usuario fue desactivado. Para reactivarlo, recupera tu contraseña. ",
+      });
+    }
 
-    // if (usuario.status != constants.UserStateEnum.CONFIRMED) {
-    // TODO! reenvio de email + logica cada 30 minutos.
-    //   return res.status(400).jsonExtra({
-    //    ok: false,
-    //    message: "Tu usuario está en proceso de confirmación, revisa tu email. Lo reenviamos. ",
-    //   });
-    //}
+
+    if (usuario.status === constants.UserStateEnum.INITIAL) {
+      return res.status(401).jsonExtra({
+       ok: false,
+       message: "Tu usuario está en proceso de confirmación, revisa tu email. ",
+      });
+    }
 
     // Generate JWT
     const token = await generateJWT(usuario.id);
@@ -118,6 +124,11 @@ const resetPassword = async (req, res) => {
       // validate Otp & repeatPassword
       if (foundUser.otp == req.body.otp 
         && req.body.password == req.body.repeatPassword) {
+
+        // Reactivar usuario si fue desactivado.
+        if (foundUser.status === constants.UserStateEnum.DEACTIVATED) {
+          foundUser.status = constants.UserStateEnum.CONFIRMED;
+        }
 
         // change password
         let hashPassword = await bcrypt.hash(req.body.password, 10);

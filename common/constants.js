@@ -2,8 +2,6 @@ require("dotenv").config();
 
 const SALT_ROUNDS = 6;
 
-const RoleEnum = ["Usuario", "Inmobiliaria"];
-
 const UserTypeEnum = {
   INMOBILIARIA: 'Inmobiliaria',
   USUARIO: 'Usuario',
@@ -21,6 +19,7 @@ const PropertyStateEnum = {
   INITIAL_3: 'Initial_3',
   PUBLICADA: 'Publicada',
   DESPUBLICADA: 'Despublicada',
+  RESERVADA: "Reservada",
 };
 
 const PropertyTypeEnum = {
@@ -29,6 +28,11 @@ const PropertyTypeEnum = {
   PH: 'PH',
   PLOT: 'Terreno',
   STOREFRONT: 'Local Comercial'
+};
+
+const ReviewTypesEnum = {
+  POSITIVE: 'Positiva',
+  NEGATIVE: 'Negativa'
 };
 
 const ContractTypeEnum = {
@@ -60,19 +64,11 @@ const PositionEnum = {
   SIDE: 'Lateral'
 }
 
-const ContractTypeStateEnum = {
-  PUBLISHED: "Published",
-  UNPUBLISHED: "Unpublished",
-  RESERVED: "Reserved",
-  COMPLETED: "Completed",
-  FINALIZED: "Finalized"
-};
-
-const ContactTypeStateEnum = {
+const ContactStateEnum = {
   SENT: "Enviado",
   ACCEPTED: "Aceptado",
   NEW_PROPOSAL: "Nueva_Propuesta",
-  REJECTED: "Rechazado"
+  DISCARDED: "Descartado"
 };
 
 const ContactTimeTypesEnum = {
@@ -117,17 +113,16 @@ module.exports = {
   PG_ENABLE_SSL,
   auth,
   mailoptions,
-  RoleEnum,
   UserTypeEnum,
   UserStateEnum,
   PropertyStateEnum,
   PropertyTypeEnum,
   ContenidoEnum,
   ContractTypeEnum,
-  ContractTypeStateEnum,
   ContactTypeEnum,
-  ContactTypeStateEnum,
+  ContactStateEnum,
   ContactTimeTypesEnum,
+  ReviewTypesEnum,
   CurrencyTypeEnum,
   OrientationEnum,
   PositionEnum,
