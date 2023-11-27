@@ -17,6 +17,14 @@ const Comment = sq.define('comment', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  authorName: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  authorPhoto: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
   message: {
     type: DataTypes.STRING,
     allowNull: false

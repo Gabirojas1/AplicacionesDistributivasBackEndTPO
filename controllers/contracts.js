@@ -249,6 +249,8 @@ const addContract = async (req, res) => {
               let comment = await Comment.create({
                 inmobiliariaUserId: inmobiliaria.id,
                 authorUserId: loggedUserId,
+                authorName: loggedUser.firstName,
+                authorPhoto: loggedUser.photo,
                 message: message,
                 reviewType: reviewType,
               });
