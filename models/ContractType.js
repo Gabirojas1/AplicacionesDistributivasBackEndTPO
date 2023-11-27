@@ -1,6 +1,6 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const { sq } = require('../db/database');
-const { ContractTypeEnum, ContractTypeStateEnum, CurrencyTypeEnum} = require('../common/constants');
+const { ContractTypeEnum, CurrencyTypeEnum} = require('../common/constants');
 
 const ContractType = sq.define('contract_type', {
   id: {
@@ -32,12 +32,7 @@ const ContractType = sq.define('contract_type', {
   contractDays: {
     type: DataTypes.INTEGER,
     defaultValue: 1095
-  }//,
-  //status: { // TODO! creo que el status no es necesario, manejarlo desde properties?
-  //  type: DataTypes.ENUM,
-  //  values: Object.values(ContractTypeStateEnum),
-  //  defaultValue: ContractTypeStateEnum.PUBLISHED
-  //}
+  }
 },
   {
     tableName: 'contract_types',

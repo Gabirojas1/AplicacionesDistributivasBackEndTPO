@@ -1,3 +1,4 @@
+const constants = require('../../common/constants.js');
 const User = require('../../models/User.js');
 
 /**
@@ -5,9 +6,9 @@ const User = require('../../models/User.js');
  * @returns account created
  */
 const signup = async(firstName, lastName, userType, password, mail, contactMail, fantasyName, phone, cuit, photo) => {
-    let user = null; 
-    
-    await User.create({
+    let user = null;
+
+    let data = {
         firstName: firstName,
         lastName: lastName, 
         userType: userType,
@@ -18,7 +19,15 @@ const signup = async(firstName, lastName, userType, password, mail, contactMail,
         phone: phone, 
         cuit: cuit,
         photo: photo
-    }).then(res => {
+    };
+
+    if (userType === constants.UserTypeEnum.USUARIO) {
+        delete data.fantasyName;
+        delete data.contactMail;
+        delete data.cuit;
+    }
+    
+    await User.create(data).then(res => {
         user = res;
     }).catch((error) => {
         error.status = 550;
@@ -142,7 +151,6 @@ const updateUser = async (user, body) => {
     delete clone.userId;
     delete clone.userType;
     delete clone.repeatPassword;
-    delete clone.status;
     delete clone.createdAt;
     delete clone.updatedAt;
 

@@ -70,7 +70,7 @@ const signup = async (req, res = response) => {
       text:
         `Hola! Te escribimos de myHome! \n
         Has registrado una cuenta con este mail, si no fuiste tu, ignoralo. \n
-        Sigue este link: http://localhost:8080/v1/users/confirm?token=` + token,
+        Sigue este link: ` + process.env.BACKEND_URI + `/v1/users/confirm?token=` + token,
     };
 
     const result = await mailHelper.sendMail(mailOptions);

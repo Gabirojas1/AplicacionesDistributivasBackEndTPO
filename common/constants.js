@@ -19,6 +19,7 @@ const PropertyStateEnum = {
   INITIAL_3: 'Initial_3',
   PUBLICADA: 'Publicada',
   DESPUBLICADA: 'Despublicada',
+  RESERVADA: "Reservada",
 };
 
 const PropertyTypeEnum = {
@@ -27,13 +28,6 @@ const PropertyTypeEnum = {
   PH: 'PH',
   PLOT: 'Terreno',
   STOREFRONT: 'Local Comercial'
-};
-
-const ContractStatusEnum = {
-  INITIALIZED: 'Iniciado',
-  RESERVED: 'Reservado',
-  CONCRETIZED: 'Concretado',
-  CANCELLED: 'Cancelado'
 };
 
 const ReviewTypesEnum = {
@@ -69,14 +63,6 @@ const PositionEnum = {
   INTERNAL: 'Interno',
   SIDE: 'Lateral'
 }
-
-const ContractTypeStateEnum = {
-  PUBLISHED: "Published",
-  UNPUBLISHED: "Unpublished",
-  RESERVED: "Reserved",
-  COMPLETED: "Completed",
-  FINALIZED: "Finalized"
-};
 
 const ContactStateEnum = {
   SENT: "Enviado",
@@ -132,9 +118,7 @@ module.exports = {
   PropertyStateEnum,
   PropertyTypeEnum,
   ContenidoEnum,
-  ContractStatusEnum,
   ContractTypeEnum,
-  ContractTypeStateEnum,
   ContactTypeEnum,
   ContactStateEnum,
   ContactTimeTypesEnum,

@@ -10,6 +10,7 @@ const axios = require('axios');
 const { response } = require('express');
 const Multimedia = require('../../models/Multimedia');
 const Favorite = require('../../models/Favorite');
+const Contract = require('../../models/Contract');
 
 /**
 * Gets properties by filtering query
@@ -201,7 +202,10 @@ const getProperties = async ({
 		include: [{
 			model: ContractType,
 			where: Object.keys(contractTypeWhereClause).length ? contractTypeWhereClause : undefined,
-        	required: Object.keys(contractTypeWhereClause).length ? true : false
+        	required: Object.keys(contractTypeWhereClause).length ? true : false,
+			include: [{
+				model: Contract
+			}]
 		}, {
 			model: Location,
 			where: Object.keys(locationTypeWhereClause).length ? locationTypeWhereClause : undefined,
@@ -210,6 +214,8 @@ const getProperties = async ({
 			model: Multimedia
 		}]
 	}
+
+	// TODO! incluir reviews.
 
 	let totalRecords = await Property.count({ where: whereStatement });
 
