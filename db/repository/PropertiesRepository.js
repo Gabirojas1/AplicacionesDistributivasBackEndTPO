@@ -11,13 +11,14 @@ const { response } = require('express');
 const Multimedia = require('../../models/Multimedia');
 const Favorite = require('../../models/Favorite');
 const Contract = require('../../models/Contract');
+const Comment = require('../../models/Comment');
 
 /**
 * Gets properties by filtering query
 * @returns List of properties
 */
 const getProperties = async ({ 
-    propertyId, userId, title, description, antiquity, mtsCovered, mtsUnconvered,
+    propertyId, ownerUserId, title, description, antiquity, mtsCovered, mtsUnconvered,
     position, orientation, numEnvironments, numRooms, numBathrooms, numCars,
     roofTop, balcony, vault, filterOwned, minRating, orderBy, orderType, skip,
     limit, contractType, propertyType, sum, laundry, swimming_pool, sport_field, 
@@ -29,8 +30,8 @@ const getProperties = async ({
 
 	var whereStatement = {};
 
-	if (userId)
-		whereStatement.userId = userId;
+	if (ownerUserId)
+		whereStatement.ownerUserId = ownerUserId;
 
 	if (propertyId)
 		whereStatement.id = propertyId;
@@ -212,10 +213,16 @@ const getProperties = async ({
         	required: Object.keys(locationTypeWhereClause).length ? true : false
 		}, {
 			model: Multimedia
+		},
+		{
+			model: User,
+			required: true,
+			include: [{
+				model: Comment,
+				required: false,
+			}]
 		}]
 	}
-
-	// TODO! incluir reviews.
 
 	let totalRecords = await Property.count({ where: whereStatement });
 
@@ -245,6 +252,33 @@ const getProperties = async ({
 };
 
 /**
+ * Busca propiedad por id
+ * si no existe retorna null
+ * @returns property if exists else null
+ */
+const getPropertyById = async(propertyId) => {
+    
+    let property = null; 
+
+    if (propertyId == undefined || propertyId.length < 1) {
+        return null;
+    }
+
+    await Property.findOne({
+        where: {
+            id: propertyId
+        },
+    }).then(res => {
+        property = res;
+    }).catch((error) => {
+        error.status = 500;
+        console.error('Failed to retrieve data : ', error);
+    });
+
+    return property;
+};
+
+/**
  * Agrega propiedad con informacion básica o información completa.
  * Los campos mínimos obligatorios son los que no pueden ser null en la base de datos:
  * 
@@ -269,7 +303,7 @@ const addProperty = async (body) => {
 
 	// Crearla con la info del body.
 	var clone = JSON.parse(JSON.stringify(body));
-	clone.userId = body.id;
+	clone.ownerUserId = body.id;
 	delete clone.id;
 
 	// TODO! usar servicio de google para generar latitude y longitude de location
@@ -510,6 +544,7 @@ const geocodeAddress = async (street_name, street_number, district, state, count
 
 module.exports = {
 	getProperties,
+	getPropertyById,
 	addProperty,
 	updateProperty,
 	deleteProperty,

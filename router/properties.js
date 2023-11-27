@@ -25,8 +25,6 @@ router.use(require("../middlewares/auth.js").decodeUserFromToken);
 // obtener properties
 router.get("/owned", propertiesCtrl.getOwnedProperties);
 
-// TODO! /v1/propreties/reserved que devuelva las propiedades reservadas para el usuario loggeado
-
 // agregar property
 router.post("/", 
 [

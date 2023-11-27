@@ -37,7 +37,7 @@ const getOwnedProperties = async (req, res) => {
     // Get Logged-Sn User properties....
     // don't filter by status, get em' all.
     req.filterOwned = true;
-    req.query.userId = req.body.id;
+    req.query.ownerUserId = req.body.id;
 
     return await getProperties(req, res);
   } catch (error) {
@@ -124,7 +124,7 @@ const updateProperty = async (req, res) => {
     // Tiene que existir con el propertyId y pertenecer al usuario loggeado.
     let properties = await PropertiesRepository.getProperties({
       propertyId: body.propertyId,
-      userId: body.id, // body.id siempre contiene el id del usuario loggeado
+      ownerUserId: body.id, // body.id siempre contiene el id del usuario loggeado
       filterOwned: true
     });
 
@@ -139,7 +139,7 @@ const updateProperty = async (req, res) => {
     }
 
     let property = properties.data[0];
-    if (property.userId != body.id) {
+    if (property.ownerUserId != body.id) {
       return res.status(401).jsonExtra({
         status: "error",
         message: "No autorizado. La propiedad no existe o no te pertenece.",
@@ -198,7 +198,7 @@ const deleteProperty = async (req, res) => {
     // Tiene que existir con el propertyId y pertenecer al usuario loggeado.
     let properties = await PropertiesRepository.getProperties({
       propertyId: params.propertyId,
-      userId: req.body.id, // body.id siempre contiene el id del usuario loggeado
+      ownerUserId: req.body.id, // body.id siempre contiene el id del usuario loggeado
       filterOwned: true
     });
 
@@ -212,7 +212,7 @@ const deleteProperty = async (req, res) => {
     }
 
     let property = properties.data[0];
-    if (property.userId != req.body.id) {
+    if (property.ownerUserId != req.body.id) {
       return res.status(401).jsonExtra({
         status: "error",
         message: "No autorizado. La propiedad no existe o no te pertenece.",

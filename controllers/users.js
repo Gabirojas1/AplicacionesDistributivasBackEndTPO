@@ -302,18 +302,20 @@ const addFavorite = async (req, res) => {
       });
     }
 
-    let properties = await PropertiesRepository.getProperties({
-      propertyId: req.body.propertyId,
-    });
-
-    if (properties.length < 1) {
+    let property = await PropertiesRepository.getPropertyById(req.body.propertyId);
+    if (property == null) {
       return res.status(401).jsonExtra({
         status: "error",
         message: "No se encontro la propiedad.",
       });
     }
 
-    let property = properties.data[0];
+    if (property.status != constants.PropertyStateEnum.PUBLICADA) {
+      return res.status(400).jsonExtra({
+        ok: false,
+        message: "No se puede guardar en favoritos una publicacion que no este publicada. Estado actual: " + property.status,
+      });
+    }
 
     let fav = await Favorite.findOrCreate({
       where: { userId: userId, propertyId: property.id },

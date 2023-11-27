@@ -1,4 +1,5 @@
 const constants = require('../../common/constants.js');
+const Comment = require('../../models/Comment.js');
 const User = require('../../models/User.js');
 
 /**
@@ -54,7 +55,11 @@ const getUserByIdUsuario = async(uid) => {
     await User.findOne({
         where: {
             id: uid
-        }
+        },
+        include: [{
+            model: Comment,
+            required: false,
+        }]
     }).then(res => {
         user = res;
     }).catch((error) => {

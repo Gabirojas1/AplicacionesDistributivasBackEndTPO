@@ -142,7 +142,7 @@ const addContact = async (req, res) => {
 
     contact = await Contacto.create({
       userId: loggedUserId,
-      inmobiliariaId: property.userId,
+      inmobiliariaId: property.ownerUserId,
       propertyId: property.id,
       contactType: contactType,
       visitDate: visitDate ? visitDate : null,

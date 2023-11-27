@@ -24,7 +24,7 @@ router.post(
         check("fantasyName", "El nombre de fantasía es obligatorio").notEmpty(),
         check("phone", "El teléfono es obligatorio").notEmpty(),
         check("phone", "El teléfono debe tener un formato de celular (e.g, +5491199999999).").isMobilePhone(),
-        check("cuit", "El cuit es obligatorio").notEmpty(), // TODO! validar cuit format regex
+        check("cuit", "El cuit es obligatorio").notEmpty(),
         check("status", "El estado no se puede indicar en registro.").not().exists(),
        
         validateField,
@@ -106,8 +106,5 @@ router.delete(
   checkAuth,
   deleteFavorite
 );
-
-
-// TODO! v1/users/comments >> Inmobiliaria obtiene todos los comentarios que recibieron sus propiedades
 
 module.exports = router;

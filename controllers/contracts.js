@@ -5,6 +5,10 @@ var constants = require("../common/constants");
 const Property = require("../models/Property");
 const ContractType = require("../models/ContractType");
 const Contract = require("../models/Contract");
+const Comment = require("../models/Comment");
+const User = require("../models/User");
+const Location = require("../models/Location");
+const Multimedia = require("../models/Multimedia");
 
 // Obtiene los contratos de inmobiliaria o usuario loggeado.
 // inmobiliaria: obtiene los contratos que recibieron todas sus propiedades.
@@ -36,12 +40,20 @@ const getContracts = async (req, res = response) => {
         include: [
           {
             model: ContractType,
-            attributes: ['id'],  // Solo mostrar el id del contract type
+           // attributes: ['id'],  // Solo mostrar el id del contract type
             required: true,
             include: [{
               model: Property,
-              attributes: ['id'],  // Solo mostrar el id de la propiedad
               required: true,
+              include: [
+                {
+                  model: Location,
+                  required: false,
+                }, {
+                  model: Multimedia,
+                  required: false,
+                }
+              ],
             }
             ],
           },
@@ -70,15 +82,23 @@ const getContracts = async (req, res = response) => {
         include: [
           {
             model: ContractType,
-            attributes: ['id'], // Solo mostrar el id del contract_type
+            //attributes: ['id'], // Solo mostrar el id del contract_type
             required: true,
             include: [{
               model: Property,
-              attributes: ['id'],  // Solo mostrar el id de la propiedad
               required: true,
               where: {
-                userId: loggedUserId
+                ownerUserId: loggedUserId
               },
+              include: [
+                {
+                  model: Location,
+                  required: false,
+                }, {
+                  model: Multimedia,
+                  required: false,
+                }
+              ],
             }
             ],
           },
@@ -150,6 +170,12 @@ const addContract = async (req, res) => {
         {
           model: Property,
           required: true,
+          include: [
+            {
+              model: User,
+              required: true,
+            },
+          ],
         },
       ]
     });
@@ -161,11 +187,13 @@ const addContract = async (req, res) => {
       });
     }
 
+    let property = contractType.property;
+
     // Validar estado de propiedad -> Publicada
-    if (contractType.property.status != constants.PropertyStateEnum.PUBLICADA) {
+    if (property.status != constants.PropertyStateEnum.PUBLICADA) {
       return res.status(400).jsonExtra({
         ok: false,
-        message: "Solo se pueden reservar propiedades en estado PUBLICADA. Su estado es: " + contractType.property.status,
+        message: "Solo se pueden reservar propiedades en estado PUBLICADA. Su estado es: " + property.status,
       });
     }
 
@@ -180,14 +208,6 @@ const addContract = async (req, res) => {
     // TODO! enviar email a inmobiliaria avisandole
     if (result == null) {
 
-      
-      // TODO! crear review si se recibe comment y review
-      let comment = req.body.comment;
-      let review = req.body.review;
-      if(comment) {
-        
-      }
-      
       await Contract.create({
         contractorUserId: loggedUserId,
         contractTypeId: contractTypeId,
@@ -198,17 +218,57 @@ const addContract = async (req, res) => {
           await created.update();
           await created.reload();
 
-          contractType.property.status = constants.PropertyStateEnum.RESERVADA;
-          await contractType.property.save();
-          await contractType.property.reload();
+          // Si se informo reviewType, creo comment & review
+          let message = req.body.commentMessage;
+          let reviewType = req.body.reviewType;
+          if (reviewType) {
 
+            let inmobiliaria = property.user;
 
+            // Recalcular rating de inmobiliaria
+            let cantPos = inmobiliaria.reviewPositive;
+            let cantNeg = inmobiliaria.reviewNegative;
+            
+            inmobiliaria.reviewCount = inmobiliaria.reviewCount + 1;
 
+            if (reviewType === constants.ReviewTypesEnum.POSITIVE) {
+              cantPos = cantPos + 1;
+            } else {
+              cantNeg = cantNeg + 1;
+            }
+
+            inmobiliaria.reviewPositive = cantPos;
+            inmobiliaria.reviewNegative = cantNeg;
+
+            let percentage = (100 * cantPos) / inmobiliaria.reviewCount;
+
+            inmobiliaria.rating = Math.ceil(percentage / 20);
+
+            // Si se informo mensaje, crear comment.
+            if(message) {
+              let comment = await Comment.create({
+                inmobiliariaUserId: inmobiliaria.id,
+                authorUserId: loggedUserId,
+                message: message,
+                reviewType: reviewType,
+              });
+              inmobiliaria.addComment(comment);
+            }
+
+            inmobiliaria.save();
+            inmobiliaria.reload();
+          }
+
+          // Reservar propiedad
+          property.status = constants.PropertyStateEnum.RESERVADA;
+          await property.save();
+          await property.reload();
 
           return res.status(201).jsonExtra({
             ok: true,
             message: "Se reservó la propiedad.",
-            data: created,
+            contract: created,
+            property: property,
           });
         });
     } else {

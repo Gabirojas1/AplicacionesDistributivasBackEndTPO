@@ -10,6 +10,7 @@ const Multimedia = require('./Multimedia.js');
 const Favorite = require('./Favorite.js');
 const Contacto = require('./Contacto.js');
 const Contract = require('./Contract.js');
+const Comment = require('./Comment.js');
 
 const User = sq.define('user', {
   id: {
@@ -59,6 +60,22 @@ const User = sq.define('user', {
   },
   otp: {
     type: DataTypes.STRING
+  }, 
+  reviewCount : {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  }, 
+  reviewPositive: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  }, 
+  reviewNegative: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  rating: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   }
 },
   {
@@ -83,6 +100,7 @@ User.sync().then(async () => {
   await Favorite.sync();
   await Contacto.sync();
   await Contract.sync();
+  await Comment.sync();
 
   let latitude = -34.617047;
   let longitude = -58.3819187;
@@ -147,7 +165,7 @@ User.sync().then(async () => {
         where: { id: 9999 },
         defaults: {
           id: 9999,
-          userId: res[0].id,
+          ownerUserId: res[0].id,
           propertyType: PropertyTypeEnum.HOUSE,
           title: "Mocked Casa",
           description: "Casa en el centro de Banfield con cuatro ambientes y multiples ammenities.",
@@ -189,7 +207,7 @@ User.sync().then(async () => {
         where: { id: 9998 },
         defaults: {
           id: 9998,
-          userId: res[0].id,
+          ownerUserId: res[0].id,
           propertyType: PropertyTypeEnum.DEPARTMENT,
           title: "Mocked Depto",
           description: "Depto en el centro de Banfield con cuatro ambientes y multiples ammenities.",
@@ -216,7 +234,8 @@ User.sync().then(async () => {
     });
 });
 
-User.hasMany(Property, { foreignKey: 'userId' });
+User.hasMany(Property, { foreignKey: 'ownerUserId' });
+Property.belongsTo(User, { foreignKey: 'ownerUserId' })
 
 // TODO! cambiar a hasOne
 Property.hasMany(ContractType, { foreignKey: 'propertyId' });
@@ -230,6 +249,10 @@ Property.belongsTo(Location, { foreignKey: 'locationId' });
 
 User.hasMany(Favorite, { foreignKey: 'userId' });
 User.hasMany(Contacto, { foreignKey: 'userId' });
+
+User.hasMany(Comment, { foreignKey: 'inmobiliariaUserId' });
+Comment.belongsTo(User, { foreignKey: 'inmobiliariaUserId' })
+
 User.hasMany(Contract, { foreignKey: 'contractorUserId' });
 Contract.belongsTo(User, { foreignKey: 'contractorUserId' })
 
