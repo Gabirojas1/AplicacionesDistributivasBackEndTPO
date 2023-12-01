@@ -35,6 +35,9 @@ const Location = sq.define('location', {
   },
   longitude: {
     type: DataTypes.FLOAT,
+  },
+  geom: {
+    type: DataTypes.GEOMETRY('POINT', 4326)
   }
 },
 {

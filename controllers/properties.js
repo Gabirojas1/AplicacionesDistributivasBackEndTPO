@@ -22,9 +22,9 @@ const getProperties = async (req, res) => {
     return res.status(error.status ? error.status : 500).jsonExtra({ 
       "code": error.status ? error.status : 500,
       "msg": error.message ? error.message : "Unexpected Error",
+
       "data": [] 
     })
-
   }
 };
 

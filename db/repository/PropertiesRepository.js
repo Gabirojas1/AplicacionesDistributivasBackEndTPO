@@ -1,6 +1,6 @@
 const constants = require('../../common/constants');
 const Property = require('../../models/Property');
-const { Op } = require('sequelize');
+const { Sequelize, Op } = require('sequelize');
 const User = require('../../models/User');
 const ContractType = require('../../models/ContractType');
 const Location = require('../../models/Location');
@@ -25,7 +25,7 @@ const getProperties = async ({
     roofTop, balcony, vault, filterOwned, minRating, orderBy, orderType, skip,
     limit, contractType, propertyType, sum, laundry, swimming_pool, sport_field, 
     solarium, gym, sauna, security, game_room, minPrice, maxPrice, expMinPrice, expMaxPrice,
-	currency, country, province, district, status
+	currency, country, province, district, status, lat, long, distanceInMeters
 }) => {
 
 	let result = [];
@@ -183,10 +183,10 @@ const getProperties = async ({
 		contractTypeWhereClause.currency = currency;
 	}
 
-	let locationTypeWhereClause = {};
 	
-	if (contractType) {
-		locationTypeWhereClause.country = country;
+	let locationTypeWhereClause = {};
+	if (country) {
+		locationTypeWhereClause.country = country
 	}
 
 	if (province) {
@@ -195,6 +195,10 @@ const getProperties = async ({
 
 	if (district) {
 		locationTypeWhereClause.district = district;
+	}
+
+	if (lat && long) { 
+		locationTypeWhereClause = Sequelize.where(Sequelize.fn('ST_DistanceSphere', Sequelize.literal('geom'), Sequelize.literal('ST_MakePoint(' + lat + ',' + long + ')')), {[Op.lte]: distanceInMeters ? distanceInMeters : 1000})
 	}
 
 	var findStatement = {
@@ -230,6 +234,10 @@ const getProperties = async ({
 		},
 		]
 	}
+
+	// if (filterOwned) {
+	// 	findStatement.include = 'user';
+	// }
 
 	let totalRecords = await Property.count({ where: whereStatement });
 
@@ -317,7 +325,6 @@ const addProperty = async (body) => {
 	clone.ownerUserId = body.id;
 	delete clone.id;
 
-	// TODO! usar servicio de google para generar latitude y longitude de location
 	await Property.create(clone,
 		{
 			include: [ContractType],
@@ -346,8 +353,11 @@ const addProperty = async (body) => {
 						cloneLoc.id = response.data.results[0].place_id;
 						cloneLoc.latitude = response.data.results[0].geometry.location.lat;
 						cloneLoc.longitude = response.data.results[0].geometry.location.lng;
+						
 					}
 				}
+
+				cloneLoc.geom = Sequelize.fn('ST_MakePoint', cloneLoc.latitude, cloneLoc.longitude);
 
 				aux = await Location.findOrCreate({
 					where: { id: cloneLoc.id },
@@ -552,6 +562,18 @@ const deleteProperty = async (property) => {
 	property.status = constants.PropertyStateEnum.DESPUBLICADA;
 	property.save();
 	property.reload({include: [{all: true, nested: true}]});
+};
+
+/**
+ * 
+ * @param {*} lat 
+ * @param {*} long 
+ * @param {*} distanceInMeters 
+ * @returns 
+ */
+const getNearbyCondition = (lat, long, distanceInMeters) => {
+	const point = `ST_SetSRID(ST_MakePoint(${long}, ${lat}), 4326)::geography`;
+    return Sequelize.literal(`ST_DWithin(geom::geography, ${point}, ${distanceInMeters})`);
 };
 
 /**
