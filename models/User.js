@@ -116,7 +116,7 @@ User.sync().then(async () => {
       district: "Ciudad Autónoma de Buenos Aires",
       street: "Lima",
       streetNumber: 756,
-      departament: "N/A",
+      department: "N/A",
       geom: Sequelize.fn('ST_MakePoint', longitude, latitude)
     }
   });
