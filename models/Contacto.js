@@ -39,8 +39,8 @@ const Contacto = sq.define('contact', {
   },
   status: { 
     type: DataTypes.ENUM,
-    values: Object.values(constants.ContactTypeStateEnum),
-    defaultValue: constants.ContactTypeStateEnum.SENT
+    values: Object.values(constants.ContactStateEnum),
+    defaultValue: constants.ContactStateEnum.SENT
   }, 
   statusMessage: {
     type: DataTypes.STRING,

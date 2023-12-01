@@ -2,7 +2,7 @@ const { Sequelize, DataTypes } = require('sequelize');
 const { sq } = require('../db/database');
 
 const Favorite = sq.define('favorite', {
-  id: {
+  favoriteId: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     primaryKey: true

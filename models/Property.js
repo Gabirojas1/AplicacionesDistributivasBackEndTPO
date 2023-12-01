@@ -3,7 +3,6 @@ const { sq } = require('../db/database');
 const { PropertyState } = require('./State/PropertyState');
 
 const {PropertyTypeEnum, PropertyStateEnum, PositionEnum, OrientationEnum} = require('../common/constants');
-const ContractType = require('./ContractType');
 
 const Property = sq.define('property', {
   id: {
@@ -11,7 +10,7 @@ const Property = sq.define('property', {
     autoIncrement: true,
     primaryKey: true
   },
-  userId: {
+  ownerUserId: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
@@ -117,10 +116,6 @@ const Property = sq.define('property', {
     type: DataTypes.ENUM,
     values: Object.values(PropertyStateEnum),
     defaultValue: PropertyStateEnum.INITIAL_1
-  },
-  rating: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
   }
 },
   {

@@ -13,7 +13,12 @@ oAuth2Client.setCredentials({
 });
 
 // Sends email using google API
-const sendMail = async (mailOptions) => {
+const sendMail = async (mail, text) => {
+
+    let mailOptions = constants.mailOptions;
+    mailOptions.to = mail;
+    mailOptions.text = text;
+    
     const accessToken = await oAuth2Client.getAccessToken();
     const transport = nodemailer.createTransport({
         service: "gmail",

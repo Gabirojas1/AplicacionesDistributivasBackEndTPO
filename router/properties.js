@@ -83,6 +83,9 @@ router.patch("/",
   check("numBathrooms", "El número de baños debe ser un entero").optional().isInt(),
   check("numCars", "El número de cocheras debe ser un entero").optional().isInt(),
 
+  check("status", "El nuevo estado solo puede ser Publicada. Para despublicar, utilize DELETE /v1/properties y para reservarla utilice /v1/contracts como usuario.")
+  .optional().equals(constants.PropertyStateEnum.PUBLICADA),
+
   // Validacion contract_types array
   check("contract_types", "Los tipos de contrato deben ser un array de objetos").optional().isArray(),
 

@@ -1,6 +1,6 @@
 const constants = require('../../common/constants');
 const Property = require('../../models/Property');
-const { Op, where } = require('sequelize');
+const { Op } = require('sequelize');
 const User = require('../../models/User');
 const ContractType = require('../../models/ContractType');
 const Location = require('../../models/Location');
@@ -8,16 +8,20 @@ const moment = require('moment');
 const Sequelize = require('sequelize');
 
 const axios = require('axios');
-const { response } = require('express');
 const Multimedia = require('../../models/Multimedia');
 const Favorite = require('../../models/Favorite');
+const Contract = require('../../models/Contract');
+const Comment = require('../../models/Comment');
+const Contacto = require('../../models/Contacto');
+
+const mailHelper = require('../../helpers/mail.js');
 
 /**
 * Gets properties by filtering query
 * @returns List of properties
 */
 const getProperties = async ({ 
-    propertyId, userId, title, description, antiquity, mtsCovered, mtsUnconvered,
+    propertyId, ownerUserId, title, description, antiquity, mtsCovered, mtsUnconvered,
     position, orientation, numEnvironments, numRooms, numBathrooms, numCars,
     roofTop, balcony, vault, filterOwned, minRating, orderBy, orderType, skip,
     limit, contractType, propertyType, sum, laundry, swimming_pool, sport_field, 
@@ -29,8 +33,8 @@ const getProperties = async ({
 
 	var whereStatement = {};
 
-	if (userId)
-		whereStatement.userId = userId;
+	if (ownerUserId)
+		whereStatement.ownerUserId = ownerUserId;
 
 	if (propertyId)
 		whereStatement.id = propertyId;
@@ -204,16 +208,32 @@ const getProperties = async ({
 		offset: skip,
 		limit: limit,
 		include: [{
+			model: User,
+			required: true,
+			include: [{
+				model: Comment,
+				required: false,
+			}]
+		},
+		{
 			model: ContractType,
 			where: Object.keys(contractTypeWhereClause).length ? contractTypeWhereClause : undefined,
-        	required: Object.keys(contractTypeWhereClause).length ? true : false
+			required: Object.keys(contractTypeWhereClause).length ? true : false,
+			include: [{
+				model: Contract
+			}]
+		},
+		{
+			model: Contacto,
+			required: false
 		}, {
 			model: Location,
 			where: Object.keys(locationTypeWhereClause).length ? locationTypeWhereClause : undefined,
-        	required: Object.keys(locationTypeWhereClause).length ? true : false
+			required: Object.keys(locationTypeWhereClause).length ? true : false
 		}, {
 			model: Multimedia
-		}]
+		},
+		]
 	}
 
 	// if (filterOwned) {
@@ -248,6 +268,37 @@ const getProperties = async ({
 };
 
 /**
+ * Busca propiedad por id
+ * si no existe retorna null
+ * @returns property if exists else null
+ */
+const getPropertyById = async(propertyId) => {
+    
+    let property = null; 
+
+    if (propertyId == undefined || propertyId.length < 1) {
+        return null;
+    }
+
+    await Property.findOne({
+        where: {
+            id: propertyId
+        },
+		include: [{
+			model: User,
+			required: true
+		}]
+    }).then(res => {
+        property = res;
+    }).catch((error) => {
+        error.status = 500;
+        console.error('Failed to retrieve data : ', error);
+    });
+
+    return property;
+};
+
+/**
  * Agrega propiedad con informacion básica o información completa.
  * Los campos mínimos obligatorios son los que no pueden ser null en la base de datos:
  * 
@@ -272,7 +323,7 @@ const addProperty = async (body) => {
 
 	// Crearla con la info del body.
 	var clone = JSON.parse(JSON.stringify(body));
-	clone.userId = body.id;
+	clone.ownerUserId = body.id;
 	delete clone.id;
 
 	// TODO! usar servicio de google para generar latitude y longitude de location
@@ -315,9 +366,7 @@ const addProperty = async (body) => {
 				result.locationId = aux[0].id;
 				result.location = aux[0];
 				result.setLocation(aux[0]);
-				
 
-				// TODO! handle API error
 			}
 
 			// Multimedia / Photos
@@ -385,9 +434,6 @@ const updateProperty = async (property, body) => {
 		property.locationId = aux[0].id;
 		property.location = aux[0];
 		property.setLocation(aux[0]);
-		
-
-		// TODO! handle API error
 	}
 
 	// Tipos de Contrato
@@ -404,8 +450,7 @@ const updateProperty = async (property, body) => {
 			delete whereStmt.expPrice;
 			delete whereStmt.currency;
 			delete whereStmt.contractDays;
-
-			// TODO! validar fields
+			
 			// ejemplo Rent deberia tener contractDays
 			let res = await ContractType.findOrCreate({
 				where: whereStmt,
@@ -463,11 +508,55 @@ const updateProperty = async (property, body) => {
 const deleteProperty = async (property) => {
 	// TODO! eliminar favoritos logicamente
 
-	let favorites = await Favorite.findAll({where: {propertyId: property.id}})
-	favorites.forEach( async fav => {
+	let alreadySentMail = [];
+
+	let favorites = await Favorite.findAll({
+		where: {
+			propertyId: property.id
+		},
+		include: [{
+				model: User,
+				required: true
+			}
+		]
+	})
+	favorites.forEach(async fav => {
+
+		if (!alreadySentMail.includes(fav.user.mail)) {
+
+			let text = `Hola! Te escribimos de myHome! \n
+			Te informamos que un favorito que tenías guardado fue eliminado debido a que la propiedad fue despublicada. `;
+			mailHelper.sendMail(fav.user.mail, text);
+			
+			alreadySentMail.push(fav.user.mail);
+		}
+
 		fav.destroy();
 	});
 
+	// TODO! eliminar contactos logicamente
+	let contactos = await Contacto.findAll({
+		where: { 
+			propertyId: property.id 
+		},
+		include: [{
+			model: User,
+			required: true,
+		}]
+	})
+	contactos.forEach( async ct => {
+
+		if (!alreadySentMail.includes(ct.user.mail)) {
+			let text = `Hola! Te escribimos de myHome! \n
+			Te informamos que un favorito que tenías guardado fue eliminado debido a que la propiedad fue despublicada. `;
+			mailHelper.sendMail(ct.user.mail, text);
+
+			alreadySentMail.push(ct.user.mail)
+		}
+
+
+		ct.destroy();
+	});
 
 	property.status = constants.PropertyStateEnum.DESPUBLICADA;
 	property.save();
@@ -523,6 +612,7 @@ const geocodeAddress = async (street_name, street_number, district, state, count
 
 module.exports = {
 	getProperties,
+	getPropertyById,
 	addProperty,
 	updateProperty,
 	deleteProperty,
