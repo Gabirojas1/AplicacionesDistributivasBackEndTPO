@@ -28,13 +28,13 @@ Con Node & NPM instalados:
 
     npm install && npm run dev
 
-Nota: se debe usar una base de datos de POSTGRES remota; utilizar el .env que esta en la carpeta /.envs/remoto/.env 
+Nota: se debe usar una base de datos de POSTGRES remota; utilizar el .env que esta en la carpeta /.envs/local-backend-and-remote-pg/.env 
 
 Con docker compose:
 
     docker compose up -d --build --force-recreate backend-myhome.app
 
-Nota: levantara la app y postgres localmente, por lo tanto el .env debe ser el local, utilizar el de la carpeta /.envs/local/.env
+Nota: levantara la app y postgres localmente, por lo tanto el .env debe ser el local, utilizar el de la carpeta /.envs/local-backend-and-local-pg/.env
 
 Con Makefile:
 
@@ -109,7 +109,6 @@ Publicada --> Despublicada
 Publicada --> Reservada
 Despublicada --> Publicada
 Despublicada --> [*]
-Publicada --> [*]
 Reservada --> [*]
 ```
 
