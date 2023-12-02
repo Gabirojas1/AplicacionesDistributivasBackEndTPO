@@ -190,14 +190,6 @@ const addContract = async (req, res) => {
 
     let property = contractType.property;
 
-    // Validar estado de propiedad -> Publicada
-    if (property.status != constants.PropertyStateEnum.PUBLICADA) {
-      return res.status(400).jsonExtra({
-        ok: false,
-        message: "Solo se pueden reservar propiedades en estado PUBLICADA. Su estado es: " + property.status,
-      });
-    }
-
     let result = await Contract.findOne({
       where: {
         contractorUserId: loggedUserId,
@@ -207,6 +199,14 @@ const addContract = async (req, res) => {
 
     // No existe ningun contrato vigente
     if (result == null) {
+
+      // Validar estado de propiedad -> Publicada
+      if (property.status != constants.PropertyStateEnum.PUBLICADA) {
+        return res.status(400).jsonExtra({
+          ok: false,
+          message: "Solo se pueden reservar propiedades en estado PUBLICADA. Su estado es: " + property.status,
+        });
+      }
 
       await Contract.create({
         contractorUserId: loggedUserId,
@@ -270,7 +270,6 @@ const addContract = async (req, res) => {
           Te informamos que se ha reservado una propiedad que te pertenece. `;
           mailHelper.sendMail(property.user.contactMail, text);
           
-
           return res.status(201).jsonExtra({
             ok: true,
             message: "Se reservó la propiedad.",
@@ -279,9 +278,76 @@ const addContract = async (req, res) => {
           });
         });
     } else {
+
+      // Si se informo reviewType, creo comment & review
+      let message = req.body.commentMessage;
+      let reviewType = req.body.reviewType;
+      if (reviewType) {
+
+        let inmobiliaria = property.user;
+
+        // Recalcular rating de inmobiliaria
+        let cantPos = inmobiliaria.reviewPositive;
+        let cantNeg = inmobiliaria.reviewNegative;
+        
+        inmobiliaria.reviewCount = inmobiliaria.reviewCount + 1;
+
+        if (reviewType === constants.ReviewTypesEnum.POSITIVE) {
+          cantPos = cantPos + 1;
+        } else {
+          cantNeg = cantNeg + 1;
+        }
+
+        inmobiliaria.reviewPositive = cantPos;
+        inmobiliaria.reviewNegative = cantNeg;
+
+        let percentage = (100 * cantPos) / inmobiliaria.reviewCount;
+
+        inmobiliaria.rating = Math.ceil(percentage / 20);
+
+        // Si se informo mensaje, crear comment.
+        if(message) {
+          let comment = await Comment.findOrCreate({
+            where: {
+                inmobiliariaUserId: inmobiliaria.id,
+                authorUserId: loggedUserId
+            },
+            defaults: {
+              inmobiliariaUserId: inmobiliaria.id,
+              authorUserId: loggedUserId,
+              authorName: loggedUser.firstName,
+              authorPhoto: loggedUser.photo,
+              message: message,
+              reviewType: reviewType,
+            }
+          });
+
+          
+          if(comment[0] != null) {
+            if (comment[1]) {
+              inmobiliaria.addComment(comment[0]);
+
+              inmobiliaria.save();
+              inmobiliaria.reload();
+              return res.status(400).jsonExtra({
+                ok: false,
+                message: "Se genero un comentario para la reserva existente.",
+                data: result,
+              });
+            } else {
+              return res.status(400).jsonExtra({
+                ok: false,
+                message: "Ya existe el comentario para la reserva!",
+                data: comment[0],
+              });
+            } 
+          }
+        }
+      }
+
       // Existe un contrato vigente
-      return res.status(200).jsonExtra({
-        ok: true,
+      return res.status(400).jsonExtra({
+        ok: false,
         message: "Ya existe una reserva para esta propiedad..",
         data: result,
       });
