@@ -248,6 +248,9 @@ Property.hasMany(Contacto, { foreignKey: 'propertyId' });
 Location.hasMany(Property, { foreignKey: 'locationId' });
 Property.belongsTo(Location, { foreignKey: 'locationId' });
 
+Property.hasMany(Favorite, { foreignKey: 'propertyId' });
+Favorite.belongsTo(Property, { foreignKey: 'propertyId' });
+
 User.hasMany(Favorite, { foreignKey: 'userId' });
 Favorite.belongsTo(User, { foreignKey: 'userId' });
 

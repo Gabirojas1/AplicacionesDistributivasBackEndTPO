@@ -14,6 +14,7 @@ const mailHelper = require("../helpers/mail");
 
 const multimediaHelper = require("../helpers/multimedia");
 const Favorite = require("../models/Favorite");
+const Property = require("../models/Property");
 
 
 
@@ -273,6 +274,12 @@ const getFavorites = async (req, res) => {
 
     let favorites = await Favorite.findAll({
       where: {userId: loggedUserId},
+      include: [
+        {
+          model: Property,
+          required: true,
+        }
+      ],
     })
 
     return res
@@ -330,12 +337,17 @@ const addFavorite = async (req, res) => {
       where: { userId: loggedUserId, propertyId: property.id },
       defaults: {
         userId: loggedUserId, propertyId: property.id
-      }
+      },
+      include: [
+        {
+          model: Property,
+          required: true,
+        }
+      ],
     });
 
     if(fav[0] != null) {
-      
-
+    
       if (fav[1]) {
         await loggedUser.addFavorite(fav[0]);
 
