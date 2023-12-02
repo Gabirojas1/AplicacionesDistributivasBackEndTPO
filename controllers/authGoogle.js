@@ -23,6 +23,8 @@ const token = req.headers.authorization
     });
 
     const payload = ticket.getPayload();
+
+    const pw = await bcrypt.hash(DEFAULT_PASSWORD, constants.SALT_ROUNDS);
     
     const usuario = await UserRepository.findOrCreate(
         payload.given_name,
@@ -30,7 +32,7 @@ const token = req.headers.authorization
         UserTypeEnum.USUARIO,
         payload.email,
         payload.picture,
-        DEFAULT_PASSWORD,
+        pw,
         UserStateEnum.CONFIRMED
     );
     
