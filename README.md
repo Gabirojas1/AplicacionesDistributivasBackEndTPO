@@ -1,28 +1,49 @@
 # Endpoints
 /auths \
 /users \
-/properties
+/users/favs \
+/properties \
+/contacts \
+/contracts \
+/healtcheck \
+/authGoogle >> Log-In de usuario con Google. \
 
 # Commands
 
-Requerimientos: 
-- Docker, docker compose
+Requerimientos:
+- Node y NPM
+- Docker, docker compose (Opcional)
 - Makefile (opcional)
 
-## Iniciar app & db
+## Iniciar app
+Nota: Se debe tener un .env en el root con las variables de entornos y secretos necesarios par acorrer la aplicacion: GMAIL, GOOGLE MAPS, CLOUDINARY, etc.
 
-> docker compose up -d --build --force-recreate backend-myhome.app 
+Con Node & NPM instalados: 
+
+    npm install && npm run dev
+
+Nota: se debe usar una base de datos de POSTGRES remota; utilizar el .env que esta en la carpeta /.envs/remoto/.env 
+
+Con docker compose:
+
+    docker compose up -d --build --force-recreate backend-myhome.app
+
+Nota: levantara la app y postgres localmente, por lo tanto el .env debe ser el local, utilizar el de la carpeta /.envs/local/.env
 
 Con Makefile:
 
     make up
 
-# Eliminar contenedores y db
+Nota: ejecuta comandos de docker compose, por lo tanto aplica lo mismo que docker-compose.
 
-> docker rm -f $(docker ps -a -q) --volumes
+# Eliminar contenedores y db (local)
+
+    docker rm -f $(docker ps -a -q) --volumes
 
 ó 
-> docker compose -f ./docker-compose.yaml down --volumes
+
+
+    docker compose -f ./docker-compose.yaml down --volumes
 
 
 
@@ -69,5 +90,31 @@ Initial_3 --> Publicada
 Publicada --> Despublicada
 Despublicada --> [*]
 Publicada --> [*]
+Reservada --> [*]
+Publicada --> Reservada
+```
 
+# Estado de Usuario
+```mermaid
+stateDiagram-v2
+[*] --> Initial
+Initial --> Confirmed
+Confirmed --> Deactivated
+Initial --> [*]
+Deactivated --> [*]
+```
+
+# Estado de Contacto
+```mermaid
+stateDiagram-v2
+[*] --> Sent
+Sent --> Accepted
+Sent --> Discarded
+Sent --> New_Proposal
+New_Proposal --> Accepted
+New_Proposal --> Discarded
+Sent --> [*]
+New_Proposal --> [*]
+Accepted --> [*]
+Discarded --> [*]
 ```

@@ -30,6 +30,11 @@ const PropertyTypeEnum = {
   STOREFRONT: 'Local Comercial'
 };
 
+const OrderTypeEnum = {
+  ASC: 'ASC',
+  DESC: 'DESC'
+};
+
 const ReviewTypesEnum = {
   POSITIVE: 'Positiva',
   NEGATIVE: 'Negativa'
@@ -118,6 +123,7 @@ module.exports = {
   UserStateEnum,
   PropertyStateEnum,
   PropertyTypeEnum,
+  OrderTypeEnum,
   ContenidoEnum,
   ContractTypeEnum,
   ContactTypeEnum,

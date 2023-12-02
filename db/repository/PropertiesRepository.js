@@ -50,12 +50,6 @@ const getProperties = async ({
 		};
 	}
 
-	if (minRating) {
-		whereStatement.rating = {
-			[Op.gte]: minRating
-		};
-	}
-
 	let orderStatement = ['updatedAt', 'DESC']
 	if (orderBy && orderType) {
 		if (orderBy == 'rating') {
@@ -63,10 +57,6 @@ const getProperties = async ({
 		} else {
 			orderStatement = [orderBy, orderType]
 		}
-	}
-
-	if (status) {
-		whereStatement.status = status
 	}
 
 	if(propertyType)
@@ -183,22 +173,29 @@ const getProperties = async ({
 		contractTypeWhereClause.currency = currency;
 	}
 
+	let inmobiliariaWhereClause = {};
+	if (minRating) {
+		inmobiliariaWhereClause.rating = {
+			[Op.gte]: minRating
+		};
+	}
 	
-	let locationTypeWhereClause = {};
+	
+	let locationWhereClause = {};
 	if (country) {
-		locationTypeWhereClause.country = country
+		locationWhereClause.country = country
 	}
 
 	if (province) {
-		locationTypeWhereClause.province = province;
+		locationWhereClause.province = province;
 	}
 
 	if (district) {
-		locationTypeWhereClause.district = district;
+		locationWhereClause.district = district;
 	}
 
 	if (lat && long) { 
-		locationTypeWhereClause = Sequelize.where(Sequelize.fn('ST_DistanceSphere', Sequelize.literal('geom'), Sequelize.literal('ST_MakePoint(' + lat + ',' + long + ')')), {[Op.lte]: distanceInMeters ? distanceInMeters : 1000})
+		locationWhereClause = Sequelize.where(Sequelize.fn('ST_DistanceSphere', Sequelize.literal('geom'), Sequelize.literal('ST_MakePoint(' + lat + ',' + long + ')')), {[Op.lte]: distanceInMeters ? distanceInMeters : 1000})
 	}
 
 	var findStatement = {
@@ -209,6 +206,7 @@ const getProperties = async ({
 		include: [{
 			model: User,
 			required: true,
+			where: Object.keys(inmobiliariaWhereClause).length ? inmobiliariaWhereClause : undefined,
 			include: [{
 				model: Comment,
 				required: false,
@@ -227,8 +225,8 @@ const getProperties = async ({
 			required: false
 		}, {
 			model: Location,
-			where: Object.keys(locationTypeWhereClause).length ? locationTypeWhereClause : undefined,
-			required: Object.keys(locationTypeWhereClause).length ? true : false
+			where: Object.keys(locationWhereClause).length ? locationWhereClause : undefined,
+			required: Object.keys(locationWhereClause).length ? true : false
 		}, {
 			model: Multimedia
 		},

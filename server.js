@@ -50,6 +50,7 @@ class Server {
     this.app.use("/v1/users", require("./router/users"));
     this.app.use("/v1/contacts", require("./router/contacts"));
     this.app.use("/v1/contracts", require("./router/contracts"));
+    this.app.use("/v1/health", require("./router/health"));
   }
 
   async execute() {
