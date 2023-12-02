@@ -103,14 +103,13 @@ const confirmSignup = async (req, res = response) => {
 
     let decoded = await verifyJWT(token);
     if (decoded.err) {
-      return res.status(401).jsonExtra({ err: "error decrypt token" });
+      return res.sendFile(
+        path.resolve("public/signup-complete-fail-01.html")
+      );
     }
 
     UserRepository.getUserByIdUsuario(decoded.id).then(async (user) => {
       if (!user) {
-        /* return res
-                    .status(401)
-                    .jsonExtra({ err: "no existe el usuario" }); */
         return res.sendFile(
           path.resolve("public/signup-complete-fail-02.html")
         );
@@ -122,8 +121,6 @@ const confirmSignup = async (req, res = response) => {
           path.resolve("public/signup-complete-fail-03.html")
         );
       }
-
-      // const token = await generateJWT({ "idusuario": decoded.idusuario });
       return res.sendFile(path.resolve("public/signup-complete-success.html"));
     });
   } catch (error) {

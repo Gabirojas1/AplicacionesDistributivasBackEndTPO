@@ -1,14 +1,20 @@
-# Endpoints
-/auths \
-/users \
-/users/favs \
-/properties \
-/contacts \
-/contracts \
-/healtcheck \
-/authGoogle >> Log-In de usuario con Google. \
+# Tabla de Contenidos
+1. [Introducción](#Introduccion)
+2. [Instalación](#Instalacion)
+3. [Documentación](#Documentacion)
+4. [Equipo de Trabajo](#Team)
+5. [Conclusión](#End)
 
-# Commands
+# Introduccion
+Este trabajo se realizo para la materia "Aplicaciones Distribuidas" ciclo 2023.
+Proyecto que conecta inmobiliarias con personas que necesitan alquilar o comprar propiedades así como la gestión del contacto y contrato de dichas transacciones a través de una aplicación movil.
+
+Stack
+Front End: React Native
+Back End: Node JS + Express + PostgreSQL. 
+APIs y dependencias: Estandar JWT para autenticacion y autorizacion; postgis para la geolocalización de propiedades, Google Maps API para la geocodificación de direcciones de las propiedades, Cloudinary para el almacenamiento de imagenes de propiedades y perfiles, Google Gmail API para el envío de mails de confirmación de cuenta y notificaciones de transacciones recibidas.
+
+# Instalacion
 
 Requerimientos:
 - Node y NPM
@@ -36,7 +42,7 @@ Con Makefile:
 
 Nota: ejecuta comandos de docker compose, por lo tanto aplica lo mismo que docker-compose.
 
-# Eliminar contenedores y db (local)
+## Eliminar contenedores y db (local)
 
     docker rm -f $(docker ps -a -q) --volumes
 
@@ -52,7 +58,7 @@ Option 2 con Makefile:
     make down
 
 
-# postgres
+## postgres
 
 Para acceder a postgres:
 
@@ -77,8 +83,19 @@ switch to myhome database
 > \dt
 list all tables
 
+# Documentacion
 
-# Estado de Propiedad
+## Endpoints
+/auths \
+/users \
+/users/favs \
+/properties \
+/contacts \
+/contracts \
+/healtcheck \
+/authGoogle >> Log-In de usuario con Google. \
+
+## Estado de Propiedad
 ```mermaid
 stateDiagram-v2
 [*] --> Initial_1
@@ -94,7 +111,7 @@ Reservada --> [*]
 Publicada --> Reservada
 ```
 
-# Estado de Usuario
+## Estado de Usuario
 ```mermaid
 stateDiagram-v2
 [*] --> Initial
@@ -104,7 +121,7 @@ Initial --> [*]
 Deactivated --> [*]
 ```
 
-# Estado de Contacto
+## Estado de Contacto
 ```mermaid
 stateDiagram-v2
 [*] --> Sent
@@ -118,3 +135,14 @@ New_Proposal --> [*]
 Accepted --> [*]
 Discarded --> [*]
 ```
+
+# Team
+| Nombre                    | Legajo    | Tareas                               |
+| ------------------------- | --------- | ------------------------------------ |
+| Angelino, Lucas           | 1083708   | Backend, Frontend, Documentacion, QA |
+| Lacuesta, Gaston Axel     | 1117695   | Backend, Frontend, Documentacion, QA |
+| Rojas, Gabriel            | 1099809   | Backend, Frontend, Documentacion, QA |
+| Streule, Agustina         | 1110159   | Backend, Frontend, Documentacion, QA |
+
+# Conclusión
+Al comienzo de este proyecto ninguno de los integrantes del equipo sabíamos de React Native y sólo dos integrantes sabían de Front End. En este proyecto aprendimos a diseñar, implementar e integrar el backend con una aplicación móvil desde cero, lo cual es de gran valor para nuestra carrera. Del lado del backend es la tercera vez que implementamos algo en Node JS, así que esto ayudo a fijar los conocimientos respecto a este lenguaje al igual que la base de datos. Se absorbieron conocimientos sobre la integración con APIs de información geográfica como lo es la API de Google Maps y la extensión POSTGIS para postgresql; por otro lado se incorporaron nuevos conocimientos sobre deployment de backend en la nube con contenedores (docker-compose).
