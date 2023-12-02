@@ -274,12 +274,7 @@ const getFavorites = async (req, res) => {
 
     let favorites = await Favorite.findAll({
       where: {userId: loggedUserId},
-      include: [
-        {
-          model: Property,
-          required: true,
-        }
-      ],
+      include: [{all: true, nested: true}]
     })
 
     return res
@@ -338,12 +333,7 @@ const addFavorite = async (req, res) => {
       defaults: {
         userId: loggedUserId, propertyId: property.id
       },
-      include: [
-        {
-          model: Property,
-          required: true,
-        }
-      ],
+      include: [{all: true, nested: true}]
     });
 
     if(fav[0] != null) {
