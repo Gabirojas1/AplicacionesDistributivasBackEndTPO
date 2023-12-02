@@ -105,9 +105,9 @@ Initial_2 --> Initial_3
 Initial_3 --> Initial_2
 Initial_3 --> Publicada
 Publicada --> Initial_3
-Despublicada --> Initial_3
 Publicada --> Despublicada
 Publicada --> Reservada
+Despublicada --> Publicada
 Despublicada --> [*]
 Publicada --> [*]
 Reservada --> [*]
