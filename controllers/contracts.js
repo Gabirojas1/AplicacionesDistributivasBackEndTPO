@@ -329,9 +329,9 @@ const addContract = async (req, res) => {
 
               inmobiliaria.save();
               inmobiliaria.reload();
-              return res.status(400).jsonExtra({
-                ok: false,
-                message: "Se genero un comentario para la reserva existente.",
+              return res.status(201).jsonExtra({
+                ok: true,
+                message: "Se creó un comentario para la reserva existente.",
                 data: result,
               });
             } else {
