@@ -2,7 +2,9 @@ const { response } = require("express");
 const { generateJWT } = require("../helpers/jwt");
 const UserRepository = require("../db/repository/UserRepository");
 const {OAuth2Client} = require('google-auth-library');
-const {  UserStateEnum, UserTypeEnum, auth, DEFAULT_PASSWORD} = require('../common/constants.js');
+const {  UserStateEnum, UserTypeEnum, auth, DEFAULT_PASSWORD, SALT_ROUNDS} = require('../common/constants.js');
+
+const bcrypt = require("bcrypt");
 
 const client = new OAuth2Client();
 
@@ -24,7 +26,7 @@ const token = req.headers.authorization
 
     const payload = ticket.getPayload();
 
-    const pw = await bcrypt.hash(DEFAULT_PASSWORD, constants.SALT_ROUNDS);
+    const pw = await bcrypt.hash(DEFAULT_PASSWORD, SALT_ROUNDS);
     
     const usuario = await UserRepository.findOrCreate(
         payload.given_name,
