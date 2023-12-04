@@ -117,7 +117,7 @@ User.sync().then(async () => {
       street: "Lima",
       streetNumber: 756,
       department: "N/A",
-      geom: Sequelize.fn('ST_MakePoint', longitude, latitude)
+      geom: Sequelize.fn('ST_MakePoint', latitude, longitude)
     }
   });
 

@@ -364,9 +364,9 @@ const addProperty = async (body) => {
 
 				// Google Maps call
 				// Si el front ya geocodifico debe informar estos datos
-				if (!cloneLoc.latitude || !cloneLoc.longitude || !cloneLoc.id) {
+				if (!cloneLoc.latitude || !cloneLoc.longitude || !cloneLoc.location_id) {
 
-					delete cloneLoc.id;
+					delete cloneLoc.location_id;
 					delete cloneLoc.latitude;
 					delete cloneLoc.longitude;
 
@@ -374,13 +374,16 @@ const addProperty = async (body) => {
 						cloneLoc.district, cloneLoc.province, cloneLoc.country);
 
 					if (response && response.statusText == "OK") {
-						cloneLoc.id = response.data.results[0].place_id;
+						cloneLoc.location_id = response.data.results[0].place_id;
 						cloneLoc.latitude = response.data.results[0].geometry.location.lat;
 						cloneLoc.longitude = response.data.results[0].geometry.location.lng;
 						
 					}
 				}
 
+				cloneLoc.id = cloneLoc.location_id;
+				delete cloneLoc.location_id;
+				
 				cloneLoc.geom = Sequelize.fn('ST_MakePoint', cloneLoc.latitude, cloneLoc.longitude);
 
 				aux = await Location.findOrCreate({
@@ -435,9 +438,9 @@ const updateProperty = async (property, body) => {
 
 		// Google Maps call
 		// Si el front ya geocodifico debe informar estos datos
-		if (!cloneLoc.latitude || !cloneLoc.longitude || !cloneLoc.id) {
+		if (!cloneLoc.latitude || !cloneLoc.longitude || !cloneLoc.location_id) {
 
-			delete cloneLoc.id;
+			delete cloneLoc.location_id;			
 			delete cloneLoc.latitude;
 			delete cloneLoc.longitude;
 
@@ -445,11 +448,14 @@ const updateProperty = async (property, body) => {
 				cloneLoc.district, cloneLoc.province, cloneLoc.country);
 
 			if (response && response.statusText == "OK") {
-				cloneLoc.id = response.data.results[0].place_id;
+				cloneLoc.location_id = response.data.results[0].place_id;
 				cloneLoc.latitude = response.data.results[0].geometry.location.lat;
 				cloneLoc.longitude = response.data.results[0].geometry.location.lng;
 			}
 		}
+
+		cloneLoc.id = cloneLoc.location_id;
+		delete cloneLoc.location_id;
 
 		cloneLoc.geom = Sequelize.fn('ST_MakePoint', cloneLoc.latitude, cloneLoc.longitude);
 
