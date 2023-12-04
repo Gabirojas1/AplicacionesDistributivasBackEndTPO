@@ -11,10 +11,9 @@ const getProperties = async (req, res) => {
   try {
     const params = req.query
 
-    params.skip = params.skip ? parseInt(params.skip, 10) : 0
-    params.limit = params.limit ? parseInt(params.limit, 10) : 10
-    params.filterOwned = req.filterOwned ? true : false
-
+    params.skip = params.skip ? parseInt(params.skip, 10) : 0;
+    params.limit = params.limit ? parseInt(params.limit, 10) : 10;
+    params.filterOwned = req.filterOwned ? true : false;
     let result = await PropertiesRepository.getProperties(params)
     
     return res.status(200).jsonExtra(result)

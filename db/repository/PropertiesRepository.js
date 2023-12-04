@@ -25,12 +25,41 @@ const getProperties = async ({
     roofTop, balcony, vault, filterOwned, minRating, orderBy, orderType, skip,
     limit, contractType, propertyType, sum, laundry, swimming_pool, sport_field, 
     solarium, gym, sauna, security, game_room, minPrice, maxPrice, expMinPrice, expMaxPrice,
-	currency, country, province, district, status, lat, long, distanceInMeters
+	currency, country, province, district, lat, long, distanceInMeters, publicada, reservada, despublicada, guardada
 }) => {
 
 	let result = [];
 
 	var whereStatement = {};
+
+	if (filterOwned) {
+
+		let statusArray = [constants.PropertyStateEnum.PUBLICADA];
+		if (!publicada) {
+			statusArray.pop();
+		}
+
+		if (reservada) {
+			statusArray.push(constants.PropertyStateEnum.RESERVADA);
+		}
+
+		if (despublicada) {
+			statusArray.push(constants.PropertyStateEnum.DESPUBLICADA);
+		}
+
+		if (guardada) {
+			statusArray.push(constants.PropertyStateEnum.INITIAL_1);
+			statusArray.push(constants.PropertyStateEnum.INITIAL_2);
+			statusArray.push(constants.PropertyStateEnum.INITIAL_3);
+		}
+
+		whereStatement.status = {
+			[Op.in]: statusArray,
+		  };
+	} else {
+		whereStatement.status = "Publicada";
+	}
+	
 
 	if (ownerUserId)
 		whereStatement.ownerUserId = ownerUserId;
@@ -136,9 +165,6 @@ const getProperties = async ({
 	
 	if (game_room !== undefined) 
 		whereStatement.game_room = game_room;
-
-	if (!filterOwned)
-		whereStatement.status = "Publicada";
 
 	let contractTypeWhereClause = {};
 	if (contractType) {
