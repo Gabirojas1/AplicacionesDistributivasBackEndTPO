@@ -153,7 +153,7 @@ User.sync().then(async () => {
       status: UserStateEnum.CONFIRMED,
       mail: userMail,
       password: "$2b$06$8wf1xpWSuUiqA5O5rCj9suJAyIwgoOFHuNTw583p4XTFTOp1wbI8G", //123456
-      contactMail: "gaxelac@outlook.com",
+      contactMail: "angelino.n.lucas@gmail.com",
       fantasyName: "RE/MAX Argentina",
       cuit: "99-12345678-88",
       phone: "+5491187654321",
