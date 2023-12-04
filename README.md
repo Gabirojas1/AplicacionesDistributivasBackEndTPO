@@ -139,12 +139,12 @@ Discarded --> [*]
 ```
 
 # Team
-| Nombre                    | Legajo    | Tareas                               |
-| ------------------------- | --------- | ------------------------------------ |
-| Angelino, Lucas           | 1083708   | Frontend, Documentacion, QA          |
-| Lacuesta, Gaston Axel     | 1117695   | Backend, Frontend, Documentacion, QA |
-| Rojas, Gabriel            | 1099809   | Frontend, Documentacion, QA          |
-| Streule, Agustina         | 1110159   | Backend, Frontend, Documentacion, QA |
+| Nombre                    | Legajo    | 
+| ------------------------- | --------- | 
+| Angelino, Lucas           | 1083708   |
+| Lacuesta, Gaston Axel     | 1117695   |
+| Rojas, Gabriel            | 1099809   | 
+| Streule, Agustina         | 1110159   |
 
 # Conclusión
 Al comienzo de este proyecto ninguno de los integrantes del equipo sabíamos de React Native y sólo dos integrantes sabían de Front End. \
