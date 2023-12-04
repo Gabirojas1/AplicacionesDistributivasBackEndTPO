@@ -7,6 +7,7 @@ const { Router } = require("express");
 
 const constants = require("../common/constants.js");
 const Location = require("../models/Location.js");
+const Property = require("../models/Property.js");
 
 const router = Router();
 router.use(require("../middlewares/response").jsonExtra);
@@ -59,7 +60,7 @@ router.get("/",
   check("long", "El long debe ser un entero").optional().isFloat(),
 
   // filtros customizados, no existen los campos en la tabla.
-  check("orderBy", "El ordenamiento de los resultados puede darse sólo con atributos de la entidad Propiedad (e.g, id, title, etc).").optional().isIn(Object.values(Location.rawAttributes)),
+  check("orderBy", "El ordenamiento de los resultados puede darse sólo con atributos de la entidad Propiedad (e.g, id, title, etc).").optional().isIn(Object.values(Property.rawAttributes)),
   check("orderType", "Los valores de ordenamiento posibles son ASC, DESC.").optional().isIn(Object.values(constants.OrderTypeEnum)),
   check("minPrice", "El precio mínimo deben ser un valor de coma flotante (e.g 150.5 (ciento cincuenta y cinco)).").optional().isFloat(),
   check("maxPrice", "El precio máximo deben ser un valor de coma flotante (e.g 150.5 (ciento cincuenta y cinco)).").optional().isFloat(),
