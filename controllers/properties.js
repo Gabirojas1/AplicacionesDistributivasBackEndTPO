@@ -119,23 +119,16 @@ const updateProperty = async (req, res) => {
 
     // Validar que la propiedad existe
     // Tiene que existir con el propertyId y pertenecer al usuario loggeado.
-    let properties = await PropertiesRepository.getProperties({
-      propertyId: body.propertyId,
-      ownerUserId: body.id, // body.id siempre contiene el id del usuario loggeado
-      filterOwned: true
-    });
+    let property = await PropertiesRepository.getPropertyById(body.propertyId);
 
-
-    // El usuario no es dueño de la propiedad o 
     // La propiedad no existe
-    if (properties.length < 1) {
+    if (property == null) {
       return res.status(401).jsonExtra({
         status: "error",
         message: "No autorizado. La propiedad no existe o no te pertenece.",
       });
     }
 
-    let property = properties.data[0];
     if (property.ownerUserId != body.id) {
       return res.status(401).jsonExtra({
         status: "error",

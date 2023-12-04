@@ -60,15 +60,15 @@ class PropertyState {
                     let location = await this.property.getLocation();
 
                     // Campos requeridos para progresar a State 3
-                    result = this.property.antiquity
-                        && this.property.mtsCovered
-                        && this.property.mtsHalfCovered
-                        && this.property.mtsUncovered
-                        && this.property.numEnvironments
-                        && this.property.numRooms
-                        && this.property.numBathrooms
-                        && this.property.numCars
-                        && location;
+                    result = location; //this.property.antiquity
+                        //&& this.property.mtsCovered
+                        //&& this.property.mtsHalfCovered
+                        //&& this.property.mtsUncovered
+                        //&& this.property.numEnvironments
+                        //&& this.property.numRooms
+                        //&& this.property.numBathrooms
+                        //&& this.property.numCars
+                       // && location;
                     break;
                     // Campos requeridos para progresar a State 4
                 case PropertyStateEnum.INITIAL_3:
