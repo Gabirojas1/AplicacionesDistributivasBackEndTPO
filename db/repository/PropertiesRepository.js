@@ -451,6 +451,8 @@ const updateProperty = async (property, body) => {
 			}
 		}
 
+		cloneLoc.geom = Sequelize.fn('ST_MakePoint', cloneLoc.latitude, cloneLoc.longitude);
+
 		aux = await Location.findOrCreate({
 			where: { id: cloneLoc.id },
 			defaults: cloneLoc
@@ -459,6 +461,8 @@ const updateProperty = async (property, body) => {
 		property.locationId = aux[0].id;
 		property.location = aux[0];
 		property.setLocation(aux[0]);
+
+		
 	}
 
 	// Tipos de Contrato
