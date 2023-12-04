@@ -511,7 +511,7 @@ const updateProperty = async (property, body) => {
 	}
 
 	// Multimedia / Photos
-	if (body.photos) {
+	if (body.photos && body.photos.length >= 1) {
 
 		// reemplazo total de imagenes
 		await Multimedia.destroy({
