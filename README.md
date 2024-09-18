@@ -5,7 +5,7 @@
 4. [Equipo de Trabajo](#Team)
 5. [Conclusión](#End)
 
-# Introduccion
+# Introducción
 Este trabajo se realizo para la materia "Aplicaciones Distribuidas" ciclo 2023.
 Proyecto que conecta inmobiliarias con personas que necesitan alquilar o comprar propiedades así como la gestión del contacto y contrato de dichas transacciones a través de una aplicación movil.
 
@@ -14,7 +14,7 @@ Proyecto que conecta inmobiliarias con personas que necesitan alquilar o comprar
 *Back End*: Node JS + Express + PostgreSQL. \
 *APIs y dependencias*: Estandar JWT para autenticacion y autorizacion; postgis para la geolocalización de propiedades, Google Maps API para la geocodificación de direcciones de las propiedades, Cloudinary para el almacenamiento de imagenes de propiedades y perfiles, Google Gmail API para el envío de mails de confirmación de cuenta y notificaciones de transacciones recibidas. \
 
-# Instalacion
+# Instalación
 
 Requerimientos:
 - Node y NPM
@@ -83,7 +83,7 @@ switch to myhome database
 > \dt
 list all tables
 
-# Documentacion
+# Documentación
 
 ## Endpoints
 /auths \
